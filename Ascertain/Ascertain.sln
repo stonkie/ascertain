@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ascertain.Console", "Ascertain.Console\Ascertain.Console.csproj", "{074B0D71-DF29-46A6-8927-2728FAE2BE5A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ascertain.Compiler.Test", "Ascertain.Compiler.Test\Ascertain.Compiler.Test.csproj", "{DD97477A-1719-47BD-91C9-B689E8EF1805}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ascertain.Compiler", "Ascertain.Compiler\Ascertain.Compiler.csproj", "{C25E3335-FD42-46C0-8A77-C142B47611ED}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{074B0D71-DF29-46A6-8927-2728FAE2BE5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{074B0D71-DF29-46A6-8927-2728FAE2BE5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{074B0D71-DF29-46A6-8927-2728FAE2BE5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{074B0D71-DF29-46A6-8927-2728FAE2BE5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD97477A-1719-47BD-91C9-B689E8EF1805}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD97477A-1719-47BD-91C9-B689E8EF1805}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD97477A-1719-47BD-91C9-B689E8EF1805}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD97477A-1719-47BD-91C9-B689E8EF1805}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C25E3335-FD42-46C0-8A77-C142B47611ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C25E3335-FD42-46C0-8A77-C142B47611ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C25E3335-FD42-46C0-8A77-C142B47611ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C25E3335-FD42-46C0-8A77-C142B47611ED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

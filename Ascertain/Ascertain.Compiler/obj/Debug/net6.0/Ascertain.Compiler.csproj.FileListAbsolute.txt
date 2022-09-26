@@ -1,0 +1,12 @@
+C:\github\ascertain\Ascertain\Ascertain.Compiler\bin\Debug\net6.0\Ascertain.Compiler.deps.json
+C:\github\ascertain\Ascertain\Ascertain.Compiler\bin\Debug\net6.0\Ascertain.Compiler.dll
+C:\github\ascertain\Ascertain\Ascertain.Compiler\bin\Debug\net6.0\Ascertain.Compiler.pdb
+C:\github\ascertain\Ascertain\Ascertain.Compiler\obj\Debug\net6.0\Ascertain.Compiler.csproj.AssemblyReference.cache
+C:\github\ascertain\Ascertain\Ascertain.Compiler\obj\Debug\net6.0\Ascertain.Compiler.GeneratedMSBuildEditorConfig.editorconfig
+C:\github\ascertain\Ascertain\Ascertain.Compiler\obj\Debug\net6.0\Ascertain.Compiler.AssemblyInfoInputs.cache
+C:\github\ascertain\Ascertain\Ascertain.Compiler\obj\Debug\net6.0\Ascertain.Compiler.AssemblyInfo.cs
+C:\github\ascertain\Ascertain\Ascertain.Compiler\obj\Debug\net6.0\Ascertain.Compiler.csproj.CoreCompileInputs.cache
+C:\github\ascertain\Ascertain\Ascertain.Compiler\obj\Debug\net6.0\Ascertain.Compiler.dll
+C:\github\ascertain\Ascertain\Ascertain.Compiler\obj\Debug\net6.0\refint\Ascertain.Compiler.dll
+C:\github\ascertain\Ascertain\Ascertain.Compiler\obj\Debug\net6.0\Ascertain.Compiler.pdb
+C:\github\ascertain\Ascertain\Ascertain.Compiler\obj\Debug\net6.0\ref\Ascertain.Compiler.dll
