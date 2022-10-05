@@ -33,11 +33,11 @@ public class LexerTest
     public void BasicParser()
     {
         var input = @"public class Program { 
-            public static void new(System system) {
-                system.GetFileSystem
+            public static new void(System system) {
+                system.GetFileSystem();
             }
         }";
-        var inputChars = input.ToCharArray();
+        
         using StringReader reader = new StringReader(input);
         Lexer lexer = new(reader);
 

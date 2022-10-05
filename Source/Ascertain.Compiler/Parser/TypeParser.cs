@@ -6,6 +6,7 @@ internal class TypeParser
     private readonly Modifier _typeModifiers;
 
     private Modifier _activeModifiers = 0;
+    private string? _activeTypeName;
     private string? _activeName;
     
     private readonly List<IMember> _accumulatedMembers = new();
@@ -45,6 +46,12 @@ internal class TypeParser
 
         if (modifier != null)
         {
+            if (_activeTypeName != null)
+            {
+                throw new AscertainException(AscertainErrorCode.ParserModifierAfterTypeOnMember,
+                    $"Modifier {modifier} at {token.Position} should be placed before type {_activeTypeName}");
+            }
+            
             _activeModifiers = _activeModifiers.AddForMethod(modifier.Value, token.Position);
             
             return null;
@@ -57,7 +64,7 @@ internal class TypeParser
                 if (_activeName == null)
                 {
                     throw new AscertainException(AscertainErrorCode.ParserMissingNameInTypeDefinition,
-                        $"Missing name in member definition at {token.Position}");    
+                        $"Missing name in member definition at {token.Position}");
                 }
 
                 if (tokenValue == "=".AsSpan())
@@ -76,15 +83,38 @@ internal class TypeParser
             case "}":
                 _isCompleted = true;
                 return new ObjectType(_typeName, _typeModifiers, _accumulatedMembers);
-            case ";":
             case "(":
+                if (_activeTypeName != null && _activeName == null)
+                {
+                    
+                }
+                else
+                {
+                    throw new AscertainException(AscertainErrorCode.ParserParametersAppliedOnNonTypeOnMember,
+                        $"Token {tokenValue} at {token.Position} opens parameter definition, but is not preceded by a type name");        
+                }
+                break;
             case ")":
+            case ";":
             case ".":
                 throw new AscertainException(AscertainErrorCode.ParserIllegalCharacterInTypeDefinition,
                     $"Character {tokenValue} at {token.Position} is illegal in type definition");
         }
 
-        _activeName = tokenValue.ToString();
+        if (_activeName == null)
+        {
+            _activeName = tokenValue.ToString();    
+        }
+        else if (_activeTypeName == null)
+        {
+            _activeTypeName = tokenValue.ToString();
+        }
+        else
+        {
+            throw new AscertainException(AscertainErrorCode.ParserTooManyIdentifiersOnMember,
+                $"Token {tokenValue} at {token.Position} was found after member name {_activeName} and type {_activeTypeName}");
+        }
+        
         return null;
     }
 }

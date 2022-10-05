@@ -45,6 +45,8 @@ public static class ModifierExtensions
                 return Modifier.Private;
             case "public":
                 return Modifier.Public;
+            case "static":
+                return Modifier.Static;
         }
 
         return null;

@@ -6,5 +6,5 @@ public enum Modifier
     Class = 1,
     Private = 1 << 1,
     Public = 1 << 2,
-    
+    Static = 1 << 3,
 }

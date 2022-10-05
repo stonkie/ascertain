@@ -10,6 +10,9 @@ public enum AscertainErrorCode
     ParserMissingNameInTypeDefinition = 0x00020004,
     ParserIllegalModifierOnMethod = 0x00020005,
     ParserIllegalModifierOnStatement = 0x00020006,
+    ParserTooManyIdentifiersOnMember = 0x00020007,
+    ParserModifierAfterTypeOnMember = 0x00020008,
+    ParserParametersAppliedOnNonTypeOnMember = 0x00020009,
      
     InternalErrorParserUnknownModifier = 0x10020001,
     InternalErrorParserAttemptingToReuseCompletedTypeParser = 0x10020002,
