@@ -9,6 +9,7 @@ internal class TypeParser
     private string? _activeTypeName;
     private string? _activeName;
     private IParameterDeclarationListParser? _activeParameterListParser;
+    private List<IParameterDeclaration>? _activeParameterDeclarationList = null; 
     
     private readonly List<IMember> _accumulatedMembers = new();
     
@@ -29,6 +30,19 @@ internal class TypeParser
             throw new AscertainException(AscertainErrorCode.InternalErrorParserAttemptingToReuseCompletedTypeParser, $"The parser was already completed and cannot be reused for token at {token.Position}");
         }
 
+        if (_activeParameterListParser != null)
+        {
+            var parameterList = _activeParameterListParser.ParseToken(token);
+
+            if (parameterList != null)
+            {
+                _activeParameterDeclarationList = parameterList;
+                _activeParameterListParser = null;
+            }
+            
+            return null;
+        }
+
         if (_activeMemberParser != null)
         {
             var method = _activeMemberParser.ParseToken(token);
@@ -36,6 +50,7 @@ internal class TypeParser
             if (method != null)
             {
                 _accumulatedMembers.Add(method);
+                _activeMemberParser = null;
             }
             
             return null;
@@ -87,7 +102,8 @@ internal class TypeParser
             case "(":
                 if (_activeTypeName != null)
                 {
-                    _activeParameterListParser
+                    _activeParameterListParser = new ParameterDeclarationListParser();
+                    return null;
                 }
                 else
                 {
@@ -117,18 +133,5 @@ internal class TypeParser
         }
         
         return null;
-    }
-}
-
-internal interface IParameterDeclarationListParser
-{
-    IMember? ParseToken(Token token);
-}
-
-public class ParameterDeclarationListParser : IParameterDeclarationListParser
-{
-    public IMember? ParseToken(Token token)
-    {
-        throw new NotImplementedException();
     }
 }
