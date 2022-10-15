@@ -10,12 +10,12 @@ public class LexerTest
         List<Token> expectedTokens = new()
         {
             new (new ReadOnlyMemory<char>(inputChars, 0, 4), new (0, 0)),
-            new (new ReadOnlyMemory<char>(inputChars, 5, 6), new (5, 0)),
-            new (new ReadOnlyMemory<char>(inputChars, 11, 1), new (11, 0)),
-            new (new ReadOnlyMemory<char>(inputChars, 12, 2), new (12, 0)),
-            new (new ReadOnlyMemory<char>(inputChars, 14, 1), new (14, 0)),
-            new (new ReadOnlyMemory<char>(inputChars, 15, 9), new (15, 0)),
-            new (new ReadOnlyMemory<char>(inputChars, 24, 1), new (24, 0)),
+            new (new ReadOnlyMemory<char>(inputChars, 5, 6), new (0, 5)),
+            new (new ReadOnlyMemory<char>(inputChars, 11, 1), new (0, 11)),
+            new (new ReadOnlyMemory<char>(inputChars, 12, 2), new (0, 12)),
+            new (new ReadOnlyMemory<char>(inputChars, 14, 1), new (0, 14)),
+            new (new ReadOnlyMemory<char>(inputChars, 15, 9), new (0, 15)),
+            new (new ReadOnlyMemory<char>(inputChars, 24, 1), new (0, 24)),
         };
         
         using StringReader reader = new StringReader(input);
@@ -23,10 +23,16 @@ public class LexerTest
 
         var tokens = lexer.GetTokens().ToListAsync().GetAwaiter().GetResult();
 
-        var expectedAsStrings = expectedTokens.Select(t => t.Value.ToString()).ToList();
-        var resultAsStrings = tokens.Select(t => t.Value.ToString()).ToList();
-        
-        Assert.Equal(expectedAsStrings, resultAsStrings);
+        Assert.Equal(expectedTokens.Count, tokens.Count);
+
+        for (var index = 0; index < expectedTokens.Count; index++)
+        {
+            var expectedToken = expectedTokens[index];
+            var token = tokens[index];
+            
+            Assert.Equal(expectedToken.Value.ToString(), token.Value.ToString());
+            Assert.Equal(expectedToken.Position, token.Position);
+        }
     }
 
     [Fact]

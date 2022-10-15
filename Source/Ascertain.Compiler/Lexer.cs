@@ -58,14 +58,17 @@ public class Lexer
                     tokens.Add(new Token(_buffer.Slice(tokenStart, i - tokenStart), _position));
                 }
 
+                _position = _position with { CharIndex = _position.CharIndex + i - tokenStart };
                 tokenStart = i;
-                _position.CharIndex += i - tokenStart;
             }
             
             if (input[i] == '\n' || input[i] == '\r')
             {
-                _position.LineIndex++;
-                _position.CharIndex = 0;
+                _position = _position with
+                {
+                    LineIndex = _position.LineIndex + 1, 
+                    CharIndex = 0
+                };
             }
 
             previousCharType = charType;
