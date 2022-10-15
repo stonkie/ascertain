@@ -8,6 +8,7 @@ internal class TypeParser
     private Modifier _activeModifiers = 0;
     private string? _activeTypeName;
     private string? _activeName;
+    private IParameterDeclarationListParser? _activeParameterListParser;
     
     private readonly List<IMember> _accumulatedMembers = new();
     
@@ -84,9 +85,9 @@ internal class TypeParser
                 _isCompleted = true;
                 return new ObjectType(_typeName, _typeModifiers, _accumulatedMembers);
             case "(":
-                if (_activeTypeName != null && _activeName == null)
+                if (_activeTypeName != null)
                 {
-                    
+                    _activeParameterListParser
                 }
                 else
                 {
@@ -116,5 +117,18 @@ internal class TypeParser
         }
         
         return null;
+    }
+}
+
+internal interface IParameterDeclarationListParser
+{
+    IMember? ParseToken(Token token);
+}
+
+public class ParameterDeclarationListParser : IParameterDeclarationListParser
+{
+    public IMember? ParseToken(Token token)
+    {
+        throw new NotImplementedException();
     }
 }
