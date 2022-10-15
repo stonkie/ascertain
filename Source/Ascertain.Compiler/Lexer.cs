@@ -62,7 +62,7 @@ public class Lexer
                 tokenStart = i;
             }
             
-            if (input[i] == '\n' || input[i] == '\r')
+            if (input[i] == '\n')
             {
                 _position = _position with
                 {
