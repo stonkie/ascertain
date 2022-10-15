@@ -6,11 +6,10 @@ internal class TypeParser
     private readonly Modifier _typeModifiers;
 
     private Modifier _activeModifiers = 0;
-    private string? _activeTypeName;
+    private ITypeDeclaration? _activeTypeDeclaration;
     private string? _activeName;
-    private IParameterDeclarationListParser? _activeParameterListParser;
-    private List<IParameterDeclaration>? _activeParameterDeclarationList = null; 
-    
+    private IParameterDeclarationListParser? _activeTypeDeclarationParser;
+
     private readonly List<IMember> _accumulatedMembers = new();
     
     private IMemberParser? _activeMemberParser;
@@ -30,14 +29,14 @@ internal class TypeParser
             throw new AscertainException(AscertainErrorCode.InternalErrorParserAttemptingToReuseCompletedTypeParser, $"The parser was already completed and cannot be reused for token at {token.Position}");
         }
 
-        if (_activeParameterListParser != null)
+        if (_activeTypeDeclarationParser != null)
         {
-            var parameterList = _activeParameterListParser.ParseToken(token);
+            var typeDeclaration = _activeTypeDeclarationParser.ParseToken(token);
 
-            if (parameterList != null)
+            if (typeDeclaration != null)
             {
-                _activeParameterDeclarationList = parameterList;
-                _activeParameterListParser = null;
+                _activeTypeDeclaration = typeDeclaration;
+                _activeTypeDeclarationParser = null;
             }
             
             return null;
@@ -62,10 +61,10 @@ internal class TypeParser
 
         if (modifier != null)
         {
-            if (_activeTypeName != null)
+            if (_activeTypeDeclaration != null)
             {
                 throw new AscertainException(AscertainErrorCode.ParserModifierAfterTypeOnMember,
-                    $"Modifier {modifier} at {token.Position} should be placed before type {_activeTypeName}");
+                    $"Modifier {modifier} at {token.Position} should be placed before type {_activeTypeDeclaration}");
             }
             
             _activeModifiers = _activeModifiers.AddForMethod(modifier.Value, token.Position);
@@ -77,40 +76,58 @@ internal class TypeParser
         {
             case "{":
             case "=":
+                
                 if (_activeName == null)
                 {
-                    throw new AscertainException(AscertainErrorCode.ParserMissingNameInTypeDefinition,
+                    throw new AscertainException(AscertainErrorCode.ParserMissingNameInMemberDefinition,
                         $"Missing name in member definition at {token.Position}");
                 }
-
-                if (tokenValue == "=".AsSpan())
+                
+                if (_activeTypeDeclaration == null)
                 {
-                    _activeMemberParser = new PropertyParser(_activeName, _activeModifiers);
+                    throw new AscertainException(AscertainErrorCode.ParserMissingTypeInMemberDefinition,
+                        $"Missing type declaration in member definition at {token.Position}");
+                }
+
+                if (tokenValue.Equals("=".AsSpan(), StringComparison.InvariantCulture))
+                {
+                    if (_activeTypeDeclaration.ParameterDeclarations != null)
+                    {
+                        throw new AscertainException(AscertainErrorCode.ParserParametersAppliedOnNonMethodMember,
+                            $"Non method members cannot have a parameterized type at {token.Position}");
+                    }
+                    
+                    _activeMemberParser = new PropertyParser(_activeName, _activeModifiers, _activeTypeDeclaration);
                 }
                 else
                 {
-                    _activeMemberParser = new MethodParser(_activeName, _activeModifiers);    
+                    _activeMemberParser = new MethodParser(_activeName, _activeModifiers, _activeTypeDeclaration);
                 }
                 
                 _activeName = null;
                 _activeModifiers = 0;
+                _activeTypeDeclaration = null;
                 
                 return null;
             case "}":
                 _isCompleted = true;
                 return new ObjectType(_typeName, _typeModifiers, _accumulatedMembers);
             case "(":
-                if (_activeTypeName != null)
-                {
-                    _activeParameterListParser = new ParameterDeclarationListParser();
-                    return null;
-                }
-                else
+                if (_activeTypeDeclaration == null)
                 {
                     throw new AscertainException(AscertainErrorCode.ParserParametersAppliedOnNonTypeOnMember,
-                        $"Token {tokenValue} at {token.Position} opens parameter definition, but is not preceded by a type name");        
+                        $"Token {tokenValue} at {token.Position} opens parameter definition, but is not preceded by a type name");
                 }
-                break;
+
+                if (_activeTypeDeclaration.ParameterDeclarations != null)
+                {
+                    throw new AscertainException(AscertainErrorCode.ParserParametersAppliedMoreThanOnceOnMember,
+                        $"Token {tokenValue} at {token.Position} opens parameter definition, but a parameter definition was declared previously on this member");
+                }
+
+                _activeTypeDeclarationParser = new ParameterDeclarationListParser(_activeTypeDeclaration.ReturnTypeName);
+                _activeTypeDeclaration = null;
+                return null;
             case ")":
             case ";":
             case ".":
@@ -122,14 +139,14 @@ internal class TypeParser
         {
             _activeName = tokenValue.ToString();    
         }
-        else if (_activeTypeName == null)
+        else if (_activeTypeDeclaration == null)
         {
-            _activeTypeName = tokenValue.ToString();
+            _activeTypeDeclaration = new TypeDeclaration(tokenValue.ToString(), null);
         }
         else
         {
             throw new AscertainException(AscertainErrorCode.ParserTooManyIdentifiersOnMember,
-                $"Token {tokenValue} at {token.Position} was found after member name {_activeName} and type {_activeTypeName}");
+                $"Token {tokenValue} at {token.Position} was found after member name {_activeName} and type {_activeTypeDeclaration}");
         }
         
         return null;

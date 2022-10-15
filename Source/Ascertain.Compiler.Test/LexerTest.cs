@@ -86,22 +86,4 @@ public class LexerTest
         }
     }
 
-    [Fact]
-    public void BasicParser()
-    {
-        var input = @"public class Program { 
-            public static new void(System system) {
-                system.GetFileSystem();
-            }
-        }";
-        
-        using StringReader reader = new StringReader(input);
-        Lexer lexer = new(reader);
-
-        var tokens = lexer.GetTokens();
-        var objects = new Parser.Parser(tokens).GetTypes().ToListAsync();
-        var programObject = objects.GetAwaiter().GetResult().Single();
-
-        Assert.Equal("Program", programObject.Name);
-    }
 }

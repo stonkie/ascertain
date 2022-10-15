@@ -2,5 +2,5 @@
 
 internal interface IParameterDeclarationListParser
 {
-    List<IParameterDeclaration>? ParseToken(Token token);
+    TypeDeclaration? ParseToken(Token token);
 }

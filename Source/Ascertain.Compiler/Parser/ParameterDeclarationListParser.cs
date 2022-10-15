@@ -2,21 +2,23 @@
 
 public class ParameterDeclarationListParser : IParameterDeclarationListParser
 {
-    public List<IParameterDeclaration>? ParseToken(Token token)
+    private readonly string _returnTypeName;
+
+    public ParameterDeclarationListParser(string returnTypeName)
+    {
+        _returnTypeName = returnTypeName;
+    }
+
+    public TypeDeclaration? ParseToken(Token token)
     {
         var tokenValue = token.Value.Span;
         
         switch (tokenValue)
         {
-            case "{":
-            case "=":
-            case "}":
-            case "(":
-            case ";":
-            case ".":
+            case ",":
                 return null;
             case ")":
-                return new List<IParameterDeclaration>();
+                return new TypeDeclaration(_returnTypeName, new List<IParameterDeclaration>());
         }
 
         return null;
