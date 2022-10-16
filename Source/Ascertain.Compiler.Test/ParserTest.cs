@@ -32,9 +32,11 @@ public class ParserTest
         var methodScope = Assert.IsType<Scope>(member.Statement);
         Assert.Equal(1, methodScope.Statements.Count); // TODO : Expand on this
         
+        
+        
         var methodType = Assert.IsType<Member>(member).TypeDeclaration;
         Assert.Equal("void", methodType.ReturnTypeName);
-        // Assert.Equal(1, methodType.ParameterDeclarations.Count); // TODO : Expand on this
+        Assert.Equal(1, methodType.ParameterDeclarations.Count); // TODO : Expand on this
         
         
     }

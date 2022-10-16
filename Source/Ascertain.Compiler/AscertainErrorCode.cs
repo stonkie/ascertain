@@ -19,5 +19,5 @@ public enum AscertainErrorCode
     ParserParametersAppliedMoreThanOnceOnMember = 0x00020013,
     
     InternalErrorParserUnknownModifier = 0x10020001,
-    InternalErrorParserAttemptingToReuseCompletedTypeParser = 0x10020002,
+    InternalErrorParserAttemptingToReuseCompletedTypeParser = 0x10020002, // TODO : Some usages are not for TypeParser
 }

@@ -3,5 +3,5 @@
 public interface ITypeDeclaration
 {
     string ReturnTypeName { get; }
-    List<IParameterDeclaration>? ParameterDeclarations { get; }
+    IReadOnlyCollection<IParameterDeclaration>? ParameterDeclarations { get; }
 }
