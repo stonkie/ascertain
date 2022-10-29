@@ -6,7 +6,7 @@ internal class TypeParser
     private readonly Modifier _typeModifiers;
 
     private Modifier _activeModifiers = 0;
-    private ITypeDeclaration? _activeTypeDeclaration;
+    private TypeDeclaration? _activeTypeDeclaration;
     private string? _activeName;
     private IParameterDeclarationListParser? _activeTypeDeclarationParser;
 

@@ -2,11 +2,11 @@
 
 public class PropertyParser : IMemberParser
 {
-    private ITypeDeclaration _memberType;
+    private TypeDeclaration _memberType;
     private readonly string _activeName;
     private readonly Modifier _activeModifiers;
 
-    public PropertyParser(string activeName, Modifier activeModifiers, ITypeDeclaration memberType)
+    public PropertyParser(string activeName, Modifier activeModifiers, TypeDeclaration memberType)
     {
         _memberType = memberType;
         _activeName = activeName;

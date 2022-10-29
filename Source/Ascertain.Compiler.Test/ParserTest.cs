@@ -1,4 +1,5 @@
-﻿using Ascertain.Compiler.Parser;
+﻿using System.Globalization;
+using Ascertain.Compiler.Parser;
 
 namespace Ascertain.Compiler.Test;
 
@@ -12,8 +13,8 @@ public class ParserTest
                 system.GetFileSystem();
             }
         }";
-        
-        using StringReader reader = new StringReader(input);
+
+        using var reader = new StringReader(input);
         Lexer lexer = new(reader);
 
         var tokens = lexer.GetTokens();
@@ -22,22 +23,31 @@ public class ParserTest
 
         Assert.Equal("Program", programObject.Name);
         Assert.Equal(Modifier.Class | Modifier.Public, programObject.Modifiers);
-        
+
         Assert.Single(programObject.Members);
 
         var member = programObject.Members.Single();
         Assert.Equal("new", member.Name);
         Assert.Equal(Modifier.Public | Modifier.Static, member.Modifiers);
-        
-        var methodScope = Assert.IsType<Scope>(member.Statement);
-        Assert.Equal(1, methodScope.Statements.Count); // TODO : Expand on this
-        
-        
-        
+
+        // Method content
+        {
+            var methodScope = Assert.IsType<Scope>(member.Expression);
+            Assert.Equal(1, methodScope.Statements.Count);
+
+            var callExpression = Assert.IsType<CallExpression>(methodScope.Statements.Single());
+            Assert.Empty(callExpression.Parameters);
+
+            var accessMemberExpression = Assert.IsType<AccessMemberExpression>(callExpression.Callable);
+            Assert.Equal("GetFileSystem", accessMemberExpression.Member.Value.Span.ToString());
+
+            var variableExpression = Assert.IsType<VariableExpression>(accessMemberExpression.Parent);
+            Assert.Equal("system", variableExpression.Token.Value.Span.ToString());
+        }
+
         var methodType = Assert.IsType<Member>(member).TypeDeclaration;
         Assert.Equal("void", methodType.ReturnTypeName);
-        Assert.Equal(1, methodType.ParameterDeclarations.Count); // TODO : Expand on this
-        
-        
+        Assert.NotNull(methodType.ParameterDeclarations);
+        Assert.Equal(1, methodType.ParameterDeclarations!.Count); // TODO : Expand on this
     }
 }

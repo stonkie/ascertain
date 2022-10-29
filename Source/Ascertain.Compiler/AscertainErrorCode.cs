@@ -17,7 +17,20 @@ public enum AscertainErrorCode
     ParserMissingNameInMemberDefinition = 0x00020011,
     ParserMissingTypeInMemberDefinition = 0x00020012,
     ParserParametersAppliedMoreThanOnceOnMember = 0x00020013,
+    ParserEmptyStatement = 0x00020014,
+    ParserAssignmentOperatorWithoutTarget = 0x00020015,
+    ParserIdentifiersNotSeparatedByOperator = 0x00020016,
+    ParserMultipleContiguousOperators = 0x00020017,
+    ParserIllegalOperatorInStatement = 0x00020018,
+    ParserNullStatement = 0x00020019,
+    ParserAssignationIntoNullStatement = 0x00020020,
+    ParserOpeningParenthesisOnNullStatement = 0x00020021,
+    ParserAccessMemberOperatorOnNullStatement = 0x00020022,
     
     InternalErrorParserUnknownModifier = 0x10020001,
     InternalErrorParserAttemptingToReuseCompletedTypeParser = 0x10020002, // TODO : Some usages are not for TypeParser
+    InternalErrorParserUnknownOperator = 0x10020003,
+    InternalErrorParserAssignationIntoNullDestination = 0x10020004,
+    InternalErrorParserCallOnNullExpression = 0x10020005,
+    InternalErrorParserAccessMemberOnNullExpression = 0x10020006,
 }
