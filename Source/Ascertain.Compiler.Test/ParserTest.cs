@@ -28,7 +28,7 @@ public class ParserTest
         Assert.Single(programObject.Members);
 
         var member = programObject.Members.Single();
-        Assert.Equal("new", member.Name);
+        Assert.Equal("New", member.Name);
         Assert.Equal(Modifier.Public | Modifier.Static, member.Modifiers);
 
         // Method content

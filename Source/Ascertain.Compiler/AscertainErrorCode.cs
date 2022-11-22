@@ -48,4 +48,5 @@ public enum AscertainErrorCode
     
     InternalErrorGeneratorVerifierFailed = 0x10040001,
     InternalErrorGeneratorUnresolvedReference = 0x10040002,
+    InternalErrorTypeGeneratedMultipleTimes = 0x10040003,
 }

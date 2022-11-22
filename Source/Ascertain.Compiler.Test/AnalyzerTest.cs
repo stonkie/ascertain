@@ -23,10 +23,10 @@ public class AnalyzerTest
 
         var program = analyser.GetProgramType().GetAwaiter().GetResult();
 
-        var constructor = program.Members["new"].Single();
+        var constructor = program.Members["New"].Single();
 
         Assert.True(constructor.IsPublic);
         Assert.True(constructor.IsStatic);
-        Assert.Equal("new", constructor.Name);
+        Assert.Equal("New", constructor.Name);
     }
 }

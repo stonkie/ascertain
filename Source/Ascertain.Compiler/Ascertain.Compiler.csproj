@@ -11,14 +11,14 @@
 
     <ItemGroup>
         <!--    TODO : Fix this hack and make it work cleanly on multiple targets-->
-        <PackageReference Include="libLLVM" Version="15.0.0"/>
-        <PackageReference Include="libLLVM.runtime.win-x64" Version="15.0.0" GeneratePathProperty="true"/>
-        <None Include="$(NugetPackageRoot)\libllvm.runtime.win-x64\15.0.0\runtimes\win-x64\native\libLLVM.dll" CopyToOutputDirectory="PreserveNewest"/>
+        <PackageReference Include="libLLVM" Version="15.0.0" />
+        <PackageReference Include="libLLVM.runtime.win-x64" Version="15.0.0" GeneratePathProperty="true" />
+        <None Include="$(NugetPackageRoot)\libllvm.runtime.win-x64\15.0.0\runtimes\win-x64\native\libLLVM.dll" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="LLVMSharp" Version="15.0.0-beta1"/>
-        <PackageReference Include="System.Linq.Async" Version="6.0.1"/>
+        <PackageReference Include="LLVMSharp" Version="15.0.0-beta1" />
+        <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -26,7 +26,7 @@
             <Generator>ResXFileCodeGenerator</Generator>
             <LastGenOutput>Compiler.Designer.cs</LastGenOutput>
         </EmbeddedResource>
-        <EmbeddedResource Include="SystemTypes\System.asc"/>
+        <EmbeddedResource Include="SystemTypes\System.asc" />
     </ItemGroup>
 
 </Project>
