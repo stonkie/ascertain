@@ -1,4 +1,4 @@
-﻿namespace Ascertain.Compiler.Parser;
+﻿namespace Ascertain.Compiler.Parsing;
 
 public class PropertyParser : IMemberParser
 {
@@ -13,7 +13,7 @@ public class PropertyParser : IMemberParser
         _activeModifiers = activeModifiers;
     }
 
-    public IMember? ParseToken(Token token)
+    public Member? ParseToken(Token token)
     {
         throw new NotImplementedException();
     }

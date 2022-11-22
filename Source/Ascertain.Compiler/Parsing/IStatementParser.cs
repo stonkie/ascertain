@@ -1,4 +1,4 @@
-﻿namespace Ascertain.Compiler.Parser;
+﻿namespace Ascertain.Compiler.Parsing;
 
 public interface IStatementParser
 {

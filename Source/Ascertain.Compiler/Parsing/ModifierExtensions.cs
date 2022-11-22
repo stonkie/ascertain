@@ -1,6 +1,6 @@
 ﻿using System.Buffers;
 
-namespace Ascertain.Compiler.Parser;
+namespace Ascertain.Compiler.Parsing;
 
 public static class ModifierExtensions
 {
@@ -41,8 +41,6 @@ public static class ModifierExtensions
         {
             case "class":
                 return Modifier.Class;
-            case "private":
-                return Modifier.Private;
             case "public":
                 return Modifier.Public;
             case "static":

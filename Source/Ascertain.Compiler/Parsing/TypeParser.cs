@@ -1,4 +1,4 @@
-﻿namespace Ascertain.Compiler.Parser;
+﻿namespace Ascertain.Compiler.Parsing;
 
 internal class TypeParser
 {
@@ -10,7 +10,7 @@ internal class TypeParser
     private string? _activeName;
     private IParameterDeclarationListParser? _activeTypeDeclarationParser;
 
-    private readonly List<IMember> _accumulatedMembers = new();
+    private readonly List<Member> _accumulatedMembers = new();
     
     private IMemberParser? _activeMemberParser;
 
@@ -22,7 +22,7 @@ internal class TypeParser
         _typeModifiers = typeModifiers;
     }
 
-    public IObjectType? ParseToken(Token token)
+    public SyntacticObjectType? ParseToken(Token token)
     {
         if (_isCompleted)
         {
@@ -111,7 +111,7 @@ internal class TypeParser
                 return null;
             case "}":
                 _isCompleted = true;
-                return new ObjectType(_typeName, _typeModifiers, _accumulatedMembers);
+                return new SyntacticObjectType(token.Position, _typeName, _typeModifiers, _accumulatedMembers);
             case "(":
                 if (_activeTypeDeclaration == null)
                 {

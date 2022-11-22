@@ -1,6 +1,6 @@
-﻿namespace Ascertain.Compiler.Parser;
+﻿namespace Ascertain.Compiler.Parsing;
 
-public class Member : IMember
+public class Member
 {
     public string Name { get; }
     public Modifier Modifiers { get; }

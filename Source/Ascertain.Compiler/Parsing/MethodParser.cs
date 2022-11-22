@@ -1,4 +1,4 @@
-﻿namespace Ascertain.Compiler.Parser;
+﻿namespace Ascertain.Compiler.Parsing;
 
 public class MethodParser : IMemberParser
 {
@@ -18,7 +18,7 @@ public class MethodParser : IMemberParser
         _activeScopeParser = new ScopeParser();
     }
 
-    public IMember? ParseToken(Token token)
+    public Member? ParseToken(Token token)
     {
         if (_isCompleted)
         {

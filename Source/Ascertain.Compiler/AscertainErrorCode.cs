@@ -27,6 +27,11 @@ public enum AscertainErrorCode
     ParserOpeningParenthesisOnNullStatement = 0x00020021,
     ParserAccessMemberOperatorOnNullStatement = 0x00020022,
     
+    AnalyzerMultipleTypesWithTheSameName = 0x00030001,
+    AnalyzerSoughtTypeNotFound = 0x00030002,
+    AnalyzerNoCategoryModifierOnType = 0x00030003,
+    AnalyzerInvalidModifierOnType = 0x00030004,
+
     InternalErrorParserUnknownModifier = 0x10020001,
     InternalErrorParserAttemptingToReuseCompletedTypeParser = 0x10020002, // TODO : Some usages are not for TypeParser
     InternalErrorParserUnknownOperator = 0x10020003,

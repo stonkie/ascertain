@@ -1,4 +1,4 @@
-﻿namespace Ascertain.Compiler.Parser;
+﻿namespace Ascertain.Compiler.Parsing;
 
 public class FileParser
 {
@@ -6,7 +6,7 @@ public class FileParser
     private string? _activeName;
     private TypeParser? _activeTypeParser;
     
-    public IObjectType? ParseToken(Token token)
+    public SyntacticObjectType? ParseToken(Token token)
     {
         if (_activeTypeParser != null)
         {

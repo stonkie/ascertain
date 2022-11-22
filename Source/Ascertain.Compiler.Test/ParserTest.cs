@@ -1,5 +1,5 @@
 ﻿using System.Globalization;
-using Ascertain.Compiler.Parser;
+using Ascertain.Compiler.Parsing;
 
 namespace Ascertain.Compiler.Test;
 
@@ -8,7 +8,7 @@ public class ParserTest
     [Fact]
     public void BasicParser()
     {
-        var input = @"public class Program { 
+        var input = @"class Program { 
             public static new void(System system) {
                 system.GetFileSystem();
             }
@@ -18,11 +18,11 @@ public class ParserTest
         Lexer lexer = new(reader);
 
         var tokens = lexer.GetTokens();
-        var objects = new Parser.Parser(tokens).GetTypes().ToListAsync();
+        var objects = new Parsing.Parser(tokens).GetTypes().ToListAsync();
         var programObject = objects.GetAwaiter().GetResult().Single();
 
         Assert.Equal("Program", programObject.Name);
-        Assert.Equal(Modifier.Class | Modifier.Public, programObject.Modifiers);
+        Assert.Equal(Modifier.Class, programObject.Modifiers);
 
         Assert.Single(programObject.Members);
 

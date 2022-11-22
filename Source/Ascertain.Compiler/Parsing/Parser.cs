@@ -1,4 +1,4 @@
-﻿namespace Ascertain.Compiler.Parser;
+﻿namespace Ascertain.Compiler.Parsing;
 
 public class Parser
 {
@@ -9,7 +9,7 @@ public class Parser
         _tokens = tokens;
     }
 
-    public async IAsyncEnumerable<IObjectType> GetTypes()
+    public async IAsyncEnumerable<SyntacticObjectType> GetTypes()
     {
         FileParser parser = new();
         

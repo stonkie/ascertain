@@ -1,6 +1,6 @@
 ﻿
 using Ascertain.Compiler;
-using Ascertain.Compiler.Parser;
+using Ascertain.Compiler.Parsing;
 
 try
 {
