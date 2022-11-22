@@ -11,4 +11,26 @@
       <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="__System.asc" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Update="Compiler.resx">
+        <Generator>ResXFileCodeGenerator</Generator>
+        <LastGenOutput>Compiler.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Include="SystemTypes\System.asc">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Compiler.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>System.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
 </Project>

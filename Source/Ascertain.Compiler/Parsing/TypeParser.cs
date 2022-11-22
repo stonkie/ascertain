@@ -141,7 +141,7 @@ internal class TypeParser
         }
         else if (_activeTypeDeclaration == null)
         {
-            _activeTypeDeclaration = new TypeDeclaration(tokenValue.ToString(), null);
+            _activeTypeDeclaration = new TypeDeclaration(token.Position, tokenValue.ToString(), null);
         }
         else
         {

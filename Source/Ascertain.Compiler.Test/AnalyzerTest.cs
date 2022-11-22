@@ -1,4 +1,5 @@
-﻿using Ascertain.Compiler.Analysis;
+﻿using System.Reflection;
+using Ascertain.Compiler.Analysis;
 using Ascertain.Compiler.Parsing;
 
 namespace Ascertain.Compiler.Test;
@@ -9,7 +10,7 @@ public class AnalyzerTest
     public void BasicAnalysis()
     {
         var input = @"class Program { 
-            public static new void(System system) {
+            public static new Void(System system) {
                 system.GetFileSystem();
             }
         }";

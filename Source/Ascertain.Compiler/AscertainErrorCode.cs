@@ -26,12 +26,18 @@ public enum AscertainErrorCode
     ParserAssignationIntoNullStatement = 0x00020020,
     ParserOpeningParenthesisOnNullStatement = 0x00020021,
     ParserAccessMemberOperatorOnNullStatement = 0x00020022,
+    ParserIllegalTokenInParameterDeclaration = 0x00020023,
+    ParserTooManyIdentifiersInParameterDeclaration = 0x00020024,
+    ParserNameMissingInParameterDeclaration = 0x00020025,
+    ParserTypeMissingInParameterDeclaration = 0x00020026,
     
     AnalyzerMultipleTypesWithTheSameName = 0x00030001,
     AnalyzerSoughtTypeNotFound = 0x00030002,
     AnalyzerNoCategoryModifierOnType = 0x00030003,
     AnalyzerInvalidModifierOnType = 0x00030004,
     AnalyzerInvalidModifierOnMember = 0x00030005,
+    AnalyzerUnresolvedReference = 0x00030006,
+    AnalyzerMemberWithDuplicateDefinition = 0x00030007,
 
     InternalErrorParserUnknownModifier = 0x10020001,
     InternalErrorParserAttemptingToReuseCompletedTypeParser = 0x10020002, // TODO : Some usages are not for TypeParser

@@ -5,7 +5,7 @@ public class ParameterDeclarationListParser : IParameterDeclarationListParser
     private readonly string _returnTypeName;
 
     private ParameterDeclarationParser _activeParameterParser;
-    private readonly List<ParameterDeclaration> _accumulatedParameters = new();
+    private readonly List<SyntacticParameterDeclaration> _accumulatedParameters = new();
 
     private bool _isCompleted;
 
@@ -22,7 +22,7 @@ public class ParameterDeclarationListParser : IParameterDeclarationListParser
             throw new AscertainException(AscertainErrorCode.InternalErrorParserAttemptingToReuseCompletedTypeParser, $"The parser was already completed and cannot be reused for token at {token.Position}");
         }
 
-        ParameterDeclaration? parameter = _activeParameterParser.ParseToken(token);
+        SyntacticParameterDeclaration? parameter = _activeParameterParser.ParseToken(token);
 
         if (parameter != null)
         {
@@ -33,7 +33,7 @@ public class ParameterDeclarationListParser : IParameterDeclarationListParser
             if (tokenValue.Equals(")".AsSpan(), StringComparison.InvariantCulture))
             {
                 _isCompleted = true;
-                return new TypeDeclaration(_returnTypeName, _accumulatedParameters);
+                return new TypeDeclaration(token.Position, _returnTypeName, _accumulatedParameters);
             }
             
             _activeParameterParser = new ParameterDeclarationParser();
