@@ -1,4 +1,6 @@
-﻿namespace Ascertain.Compiler.Analysis;
+﻿using Ascertain.Compiler.Lexing;
+
+namespace Ascertain.Compiler.Analysis;
 
 public record ObjectTypeReference(Position Position, QualifiedName Name)
 {

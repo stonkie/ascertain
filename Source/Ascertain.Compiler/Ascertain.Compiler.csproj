@@ -5,32 +5,28 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>preview</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+        <!--    TODO : Fix this hack and make it work cleanly on multiple targets-->
+        <PackageReference Include="libLLVM" Version="15.0.0"/>
+        <PackageReference Include="libLLVM.runtime.win-x64" Version="15.0.0" GeneratePathProperty="true"/>
+        <None Include="$(NugetPackageRoot)\libllvm.runtime.win-x64\15.0.0\runtimes\win-x64\native\libLLVM.dll" CopyToOutputDirectory="PreserveNewest"/>
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="__System.asc" />
+        <PackageReference Include="LLVMSharp" Version="15.0.0-beta1"/>
+        <PackageReference Include="System.Linq.Async" Version="6.0.1"/>
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Update="Compiler.resx">
-        <Generator>ResXFileCodeGenerator</Generator>
-        <LastGenOutput>Compiler.Designer.cs</LastGenOutput>
-      </EmbeddedResource>
-      <EmbeddedResource Include="SystemTypes\System.asc">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </EmbeddedResource>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Update="Compiler.Designer.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>System.resx</DependentUpon>
-      </Compile>
+        <EmbeddedResource Update="Compiler.resx">
+            <Generator>ResXFileCodeGenerator</Generator>
+            <LastGenOutput>Compiler.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
+        <EmbeddedResource Include="SystemTypes\System.asc"/>
     </ItemGroup>
 
 </Project>

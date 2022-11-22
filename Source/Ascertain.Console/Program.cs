@@ -1,5 +1,6 @@
 ﻿
 using Ascertain.Compiler;
+using Ascertain.Compiler.Lexing;
 using Ascertain.Compiler.Parsing;
 
 try

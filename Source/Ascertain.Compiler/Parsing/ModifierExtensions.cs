@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using Ascertain.Compiler.Lexing;
 
 namespace Ascertain.Compiler.Parsing;
 

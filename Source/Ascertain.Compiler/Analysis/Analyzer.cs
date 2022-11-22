@@ -84,7 +84,7 @@ internal class Analyzer
             members[syntacticMember.Name].Add(member);
         }
         
-        return new ObjectType(members);
+        return new ObjectType(new QualifiedName(type.Name), members);
     }
 
     private Member AnalyzeMember(SyntacticMember member)

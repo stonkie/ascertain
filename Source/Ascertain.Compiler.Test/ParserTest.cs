@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using Ascertain.Compiler.Lexing;
 using Ascertain.Compiler.Parsing;
 
 namespace Ascertain.Compiler.Test;
@@ -9,7 +10,7 @@ public class ParserTest
     public void BasicParser()
     {
         var input = @"class Program { 
-            public static new void(System system) {
+            public static New Program(System system) {
                 system.GetFileSystem();
             }
         }";
@@ -46,7 +47,7 @@ public class ParserTest
         }
 
         var methodType = Assert.IsType<SyntacticMember>(member).TypeDeclaration;
-        Assert.Equal("void", methodType.ReturnTypeName);
+        Assert.Equal("Program", methodType.ReturnTypeName);
         Assert.NotNull(methodType.ParameterDeclarations);
         Assert.Equal(1, methodType.ParameterDeclarations!.Count); // TODO : Expand on this
     }

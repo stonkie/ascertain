@@ -1,3 +1,5 @@
+using Ascertain.Compiler.Lexing;
+
 namespace Ascertain.Compiler.Test;
 
 public class LexerTest
@@ -39,7 +41,7 @@ public class LexerTest
     public void MultilineTokenization()
     {
         var input = @"class Program { 
-            public static new void(System system) {
+            public static New void(System system) {
                 system.GetFileSystem();
             }
         }";

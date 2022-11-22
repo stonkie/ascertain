@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Ascertain.Compiler.Lexing;
 using Ascertain.Compiler.Parsing;
 
 namespace Ascertain.Compiler.Analysis;

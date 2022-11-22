@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Ascertain.Compiler.Analysis;
+using Ascertain.Compiler.Lexing;
 using Ascertain.Compiler.Parsing;
 
 namespace Ascertain.Compiler.Test;
@@ -10,7 +11,7 @@ public class AnalyzerTest
     public void BasicAnalysis()
     {
         var input = @"class Program { 
-            public static new Void(System system) {
+            public static New Program(System system) {
                 system.GetFileSystem();
             }
         }";
@@ -20,7 +21,12 @@ public class AnalyzerTest
         Parser parser = new(lexer.GetTokens());
         ProgramAnalyzer analyser = new(parser.GetTypes(), "Program");
 
-        analyser.GetProgramType().GetAwaiter().GetResult();
+        var program = analyser.GetProgramType().GetAwaiter().GetResult();
 
+        var constructor = program.Members["new"].Single();
+
+        Assert.True(constructor.IsPublic);
+        Assert.True(constructor.IsStatic);
+        Assert.Equal("new", constructor.Name);
     }
 }

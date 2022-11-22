@@ -1,4 +1,6 @@
-﻿namespace Ascertain.Compiler.Parsing;
+﻿using Ascertain.Compiler.Lexing;
+
+namespace Ascertain.Compiler.Parsing;
 
 public class TypeDeclaration
 {

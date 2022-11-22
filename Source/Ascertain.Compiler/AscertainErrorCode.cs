@@ -45,4 +45,7 @@ public enum AscertainErrorCode
     InternalErrorParserAssignationIntoNullDestination = 0x10020004,
     InternalErrorParserCallOnNullExpression = 0x10020005,
     InternalErrorParserAccessMemberOnNullExpression = 0x10020006,
+    
+    InternalErrorGeneratorVerifierFailed = 0x10040001,
+    InternalErrorGeneratorUnresolvedReference = 0x10040002,
 }

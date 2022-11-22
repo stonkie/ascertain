@@ -1,4 +1,4 @@
-﻿namespace Ascertain.Compiler;
+﻿namespace Ascertain.Compiler.Lexing;
 
 public class Lexer
 {
@@ -106,21 +106,5 @@ public class Lexer
                     throw new AscertainException(AscertainErrorCode.LexerIllegalCharacter, $"illegal character {c} at {_position}");
             }
         }
-    }
-    
-    public enum CharType
-    {
-        WhiteSpace,
-        Identifier,
-        Operator,
-        Grouper,
-    }
-}
-
-public static class CharTypeExt
-{
-    public static bool IsOneTokenPerChar(this Lexer.CharType type)
-    {
-        return type == Lexer.CharType.Grouper;
     }
 }

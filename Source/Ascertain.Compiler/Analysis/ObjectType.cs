@@ -1,3 +1,3 @@
 ﻿namespace Ascertain.Compiler.Analysis;
 
-public record ObjectType(Dictionary<string, List<Member>> Members);
+public record ObjectType(QualifiedName Name, Dictionary<string, List<Member>> Members);
