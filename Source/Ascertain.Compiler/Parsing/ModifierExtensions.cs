@@ -29,12 +29,6 @@ public static class ModifierExtensions
         return current | newModifier;
     }
 
-    public static Modifier AddForStatement(this Modifier current, Modifier newModifier, Position position)
-    {
-        
-        throw new AscertainException(AscertainErrorCode.ParserIllegalModifierOnStatement, $"The modifier {newModifier} is illegal on a statement at {position}");
-    }
-
     public static Modifier? ToModifier(this ReadOnlySpan<char> name)
     {
         switch (name)

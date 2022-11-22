@@ -4,11 +4,11 @@ public class SyntacticObjectType
 {
     public Position Position { get; }
     
-    public List<Member> Members { get; }
+    public List<SyntacticMember> Members { get; }
     public string Name { get; }
     public Modifier Modifiers { get; }
 
-    public SyntacticObjectType(Position position, string name, Modifier modifiers, List<Member> members)
+    public SyntacticObjectType(Position position, string name, Modifier modifiers, List<SyntacticMember> members)
     {
         Position = position;
         Members = members;

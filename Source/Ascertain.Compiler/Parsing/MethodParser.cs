@@ -18,7 +18,7 @@ public class MethodParser : IMemberParser
         _activeScopeParser = new ScopeParser();
     }
 
-    public Member? ParseToken(Token token)
+    public SyntacticMember? ParseToken(Token token)
     {
         if (_isCompleted)
         {
@@ -30,7 +30,7 @@ public class MethodParser : IMemberParser
         if (scope != null)
         {
             _isCompleted = true;
-            return new Member(_methodName, _methodModifiers, _typeDeclaration, scope);
+            return new SyntacticMember(token.Position, _methodName, _methodModifiers, _typeDeclaration, scope);
         }
         
         return null;

@@ -13,7 +13,7 @@ public class PropertyParser : IMemberParser
         _activeModifiers = activeModifiers;
     }
 
-    public Member? ParseToken(Token token)
+    public SyntacticMember? ParseToken(Token token)
     {
         throw new NotImplementedException();
     }

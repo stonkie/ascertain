@@ -2,5 +2,5 @@
 
 public interface IMemberParser
 {
-    Member? ParseToken(Token token);
+    SyntacticMember? ParseToken(Token token);
 }

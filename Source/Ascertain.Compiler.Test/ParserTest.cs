@@ -45,7 +45,7 @@ public class ParserTest
             Assert.Equal("system", variableExpression.Token.Value.Span.ToString());
         }
 
-        var methodType = Assert.IsType<Member>(member).TypeDeclaration;
+        var methodType = Assert.IsType<SyntacticMember>(member).TypeDeclaration;
         Assert.Equal("void", methodType.ReturnTypeName);
         Assert.NotNull(methodType.ParameterDeclarations);
         Assert.Equal(1, methodType.ParameterDeclarations!.Count); // TODO : Expand on this

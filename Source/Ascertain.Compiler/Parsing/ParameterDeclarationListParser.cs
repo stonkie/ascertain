@@ -5,7 +5,7 @@ public class ParameterDeclarationListParser : IParameterDeclarationListParser
     private readonly string _returnTypeName;
 
     private ParameterDeclarationParser _activeParameterParser;
-    private readonly List<IParameterDeclaration> _accumulatedParameters = new();
+    private readonly List<ParameterDeclaration> _accumulatedParameters = new();
 
     private bool _isCompleted;
 
@@ -22,7 +22,7 @@ public class ParameterDeclarationListParser : IParameterDeclarationListParser
             throw new AscertainException(AscertainErrorCode.InternalErrorParserAttemptingToReuseCompletedTypeParser, $"The parser was already completed and cannot be reused for token at {token.Position}");
         }
 
-        IParameterDeclaration? parameter = _activeParameterParser.ParseToken(token);
+        ParameterDeclaration? parameter = _activeParameterParser.ParseToken(token);
 
         if (parameter != null)
         {

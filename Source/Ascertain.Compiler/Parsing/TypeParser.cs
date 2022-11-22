@@ -10,7 +10,7 @@ internal class TypeParser
     private string? _activeName;
     private IParameterDeclarationListParser? _activeTypeDeclarationParser;
 
-    private readonly List<Member> _accumulatedMembers = new();
+    private readonly List<SyntacticMember> _accumulatedMembers = new();
     
     private IMemberParser? _activeMemberParser;
 

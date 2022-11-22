@@ -31,6 +31,7 @@ public enum AscertainErrorCode
     AnalyzerSoughtTypeNotFound = 0x00030002,
     AnalyzerNoCategoryModifierOnType = 0x00030003,
     AnalyzerInvalidModifierOnType = 0x00030004,
+    AnalyzerInvalidModifierOnMember = 0x00030005,
 
     InternalErrorParserUnknownModifier = 0x10020001,
     InternalErrorParserAttemptingToReuseCompletedTypeParser = 0x10020002, // TODO : Some usages are not for TypeParser

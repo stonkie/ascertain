@@ -25,7 +25,7 @@ public class ProgramAnalyzer
     private async Task<ObjectType> AnalyzeProgramType()
     {
         Analyzer analyzer = new(_types, _programTypeName);
-        return await analyzer.GetType();
+        return await analyzer.GetObjectType();
     }
 }
 
@@ -42,7 +42,7 @@ internal class Analyzer
         _soughtType = soughtType;
     }
 
-    public async Task<ObjectType> GetType()
+    public async Task<ObjectType> GetObjectType()
     {
         ObjectType? soughtObjectType = null;
         
@@ -78,18 +78,20 @@ internal class Analyzer
     {
         if (!type.Modifiers.HasFlag(Modifier.Class))
         {
-            throw new AscertainException(AscertainErrorCode.AnalyzerNoCategoryModifierOnType, $"The type {type.Name} does not have the class modified.");
+            throw new AscertainException(AscertainErrorCode.AnalyzerNoCategoryModifierOnType, $"The type {type.Name} at {type.Position} does not have the class modifier.");
         }
         
         if (type.Modifiers.HasFlag(Modifier.Static))
         {
-            throw new AscertainException(AscertainErrorCode.AnalyzerInvalidModifierOnType, $"The type {type.Name} has the illegal static modifier.");
+            throw new AscertainException(AscertainErrorCode.AnalyzerInvalidModifierOnType, $"The type {type.Name} at {type.Position} has the illegal static modifier.");
         }
 
         if (type.Modifiers.HasFlag(Modifier.Public))
         {
-            throw new AscertainException(AscertainErrorCode.AnalyzerInvalidModifierOnType, $"The type {type.Name} has the illegal public modifier.");
+            throw new AscertainException(AscertainErrorCode.AnalyzerInvalidModifierOnType, $"The type {type.Name} at {type.Position} has the illegal public modifier.");
         }
+
+        Dictionary<string, Member> members = new();
 
         foreach (var member in type.Members)
         {
@@ -99,12 +101,32 @@ internal class Analyzer
         return new ObjectType();
     }
 
-    private void AnalyzeMember(Member member)
+    private Member AnalyzeMember(SyntacticMember member)
     {
-        
+        if (member.Modifiers.HasFlag(Modifier.Class))
+        {
+            throw new AscertainException(AscertainErrorCode.AnalyzerInvalidModifierOnMember, $"The member {member.Name} at {member.Position} has the illegal class modifier.");
+        }
+
+        bool isStatic = member.Modifiers.HasFlag(Modifier.Static);
+        bool isPublic = member.Modifiers.HasFlag(Modifier.Public);
+
+        if (member.TypeDeclaration.ParameterDeclarations == null)
+        {
+            return new Member(isPublic, isStatic);    
+        }
+        else
+        {
+            foreach (var parameter in member.TypeDeclaration.ParameterDeclarations)
+            {
+                // TODO : Complete parameter disambiguation
+            }   
+            
+            return new Member(isPublic, isStatic);
+        }
     }
 }
 
-public class ObjectType
-{
-}
+public record ObjectType();
+
+public record Member(bool IsPublic, bool IsStatic);

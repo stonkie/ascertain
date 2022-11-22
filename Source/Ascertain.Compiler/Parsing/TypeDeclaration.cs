@@ -3,9 +3,9 @@
 public class TypeDeclaration
 {
     public string ReturnTypeName { get; }
-    public IReadOnlyCollection<IParameterDeclaration>? ParameterDeclarations { get; } // null means not parameterized
+    public IReadOnlyCollection<ParameterDeclaration>? ParameterDeclarations { get; } // null means not parameterized
 
-    public TypeDeclaration(string returnTypeName, IReadOnlyCollection<IParameterDeclaration>? parameterDeclarations)
+    public TypeDeclaration(string returnTypeName, IReadOnlyCollection<ParameterDeclaration>? parameterDeclarations)
     {
         ReturnTypeName = returnTypeName;
         ParameterDeclarations = parameterDeclarations;

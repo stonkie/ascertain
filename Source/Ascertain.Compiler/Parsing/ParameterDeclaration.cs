@@ -1,5 +1,5 @@
 ﻿namespace Ascertain.Compiler.Parsing;
 
-public class ParameterDeclaration : IParameterDeclaration
+public class ParameterDeclaration
 {
 }

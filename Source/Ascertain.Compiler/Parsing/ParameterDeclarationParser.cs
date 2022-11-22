@@ -4,7 +4,7 @@ public class ParameterDeclarationParser
 {
     private bool _isCompleted;
 
-    public IParameterDeclaration? ParseToken(Token token)
+    public ParameterDeclaration? ParseToken(Token token)
     {
         if (_isCompleted)
         {
