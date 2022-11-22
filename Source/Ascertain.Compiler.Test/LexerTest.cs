@@ -86,5 +86,4 @@ public class LexerTest
             Assert.Equal(expectedToken.Position, token.Position);
         }
     }
-
 }

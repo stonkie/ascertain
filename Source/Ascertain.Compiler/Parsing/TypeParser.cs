@@ -133,6 +133,7 @@ internal class TypeParser
             case ")":
             case ";":
             case ".":
+            case "#":
                 throw new AscertainException(AscertainErrorCode.ParserIllegalCharacterInTypeDefinition,
                     $"Character {tokenValue} at {token.Position} is illegal in type definition");
         }

@@ -99,6 +99,7 @@ public class ExpressionParser : IStatementParser
             case "{":
             case "}":
             case ")":
+            case "#":
                 throw new AscertainException(AscertainErrorCode.ParserIllegalOperatorInStatement, $"The identifier at {token.Position} follows an expression without an operator.");
         }
 

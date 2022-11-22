@@ -19,7 +19,7 @@ public class ParserTest
         Lexer lexer = new(reader);
 
         var tokens = lexer.GetTokens();
-        var objects = new Parsing.Parser(tokens).GetTypes().ToListAsync();
+        var objects = new Parser(tokens).GetTypes().ToListAsync();
         var programObject = objects.GetAwaiter().GetResult().Single();
 
         Assert.Equal("Program", programObject.Name);
@@ -50,5 +50,27 @@ public class ParserTest
         Assert.Equal("Program", methodType.ReturnTypeName);
         Assert.NotNull(methodType.ParameterDeclarations);
         Assert.Equal(1, methodType.ParameterDeclarations!.Count); // TODO : Expand on this
+    }
+    
+    [Fact]
+    public void ParseWithAttribute()
+    {
+        var input = 
+        """
+        #Primitive("void")
+        class Void {}
+        """;
+
+        using var reader = new StringReader(input);
+        Lexer lexer = new(reader);
+
+        var tokens = lexer.GetTokens();
+        var objects = new Parser(tokens).GetTypes().ToListAsync();
+        var voidType = objects.GetAwaiter().GetResult().Single();
+
+        Assert.Equal("Void", voidType.Name);
+        Assert.Equal(Modifier.Class, voidType.Modifiers);
+
+        Assert.Empty(voidType.Members);
     }
 }

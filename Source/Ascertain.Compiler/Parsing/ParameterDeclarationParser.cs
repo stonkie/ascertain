@@ -39,6 +39,7 @@ public class ParameterDeclarationParser
             case "(":
             case ";":
             case ".":
+            case "#":
                 throw new AscertainException(AscertainErrorCode.ParserIllegalTokenInParameterDeclaration, $"Token {tokenValue} at {token.Position} is illegal in a parameter declaration");
             case ",":
             case ")":

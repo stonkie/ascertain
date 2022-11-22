@@ -101,6 +101,7 @@ public class Lexer
                 case '.':
                 case ';':
                 case '=':
+                case '#':
                     return CharType.Operator;
                 default:
                     throw new AscertainException(AscertainErrorCode.LexerIllegalCharacter, $"illegal character {c} at {_position}");
