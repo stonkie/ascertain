@@ -86,4 +86,34 @@ public class LexerTest
             Assert.Equal(expectedToken.Position, token.Position);
         }
     }
+
+
+    [Fact]
+    public void StringLiteralTokenization()
+    {
+        var input = """test"test"test""";
+        var inputChars = input.ToCharArray();
+        List<Token> expectedTokens = new()
+        {
+            new (new ReadOnlyMemory<char>(inputChars, 0, 4), new (0, 0)),
+            new (new ReadOnlyMemory<char>(inputChars, 4, 6), new (0, 4)),
+            new (new ReadOnlyMemory<char>(inputChars, 10, 4), new (0, 10)),
+        };
+        
+        using StringReader reader = new StringReader(input);
+        Lexer lexer = new(reader);
+
+        var tokens = lexer.GetTokens().ToListAsync().GetAwaiter().GetResult();
+
+        Assert.Equal(expectedTokens.Count, tokens.Count);
+
+        for (var index = 0; index < expectedTokens.Count; index++)
+        {
+            var expectedToken = expectedTokens[index];
+            var token = tokens[index];
+            
+            Assert.Equal(expectedToken.Value.ToString(), token.Value.ToString());
+            Assert.Equal(expectedToken.Position, token.Position);
+        }
+    }
 }

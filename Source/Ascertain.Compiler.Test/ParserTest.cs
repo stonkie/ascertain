@@ -57,7 +57,7 @@ public class ParserTest
     {
         var input = 
         """
-        #Primitive("void")
+        #Primitive("void");
         class Void {}
         """;
 

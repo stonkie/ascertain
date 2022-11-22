@@ -6,4 +6,5 @@ public enum CharType
     Identifier,
     Operator,
     Grouper,
+    StringLiteralDelimiter,
 }

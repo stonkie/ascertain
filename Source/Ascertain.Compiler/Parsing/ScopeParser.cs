@@ -35,7 +35,8 @@ public class ScopeParser : IStatementParser
         switch (tokenValue)
         {
             case "#":
-                throw new AscertainException(AscertainErrorCode.ParserIllegalCompilerMetadataInScope,
+            case "\"":
+                throw new AscertainException(AscertainErrorCode.ParserIllegalTokenInScope,
                     $"Character {tokenValue} at {token.Position} is illegal in a scope definition");
             case "}":
                 _isCompleted = true;

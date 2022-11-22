@@ -1,4 +1,5 @@
-﻿using Ascertain.Compiler.Lexing;
+﻿using System.Collections.ObjectModel;
+using Ascertain.Compiler.Lexing;
 
 namespace Ascertain.Compiler.Parsing;
 
@@ -6,6 +7,7 @@ internal class TypeParser
 {
     private readonly string _typeName;
     private readonly Modifier _typeModifiers;
+    private readonly IReadOnlyList<CallExpression> _compilerMetadata;
 
     private Modifier _activeModifiers = 0;
     private TypeDeclaration? _activeTypeDeclaration;
@@ -18,10 +20,11 @@ internal class TypeParser
 
     private bool _isCompleted;
 
-    public TypeParser(string typeName, Modifier typeModifiers)
+    public TypeParser(string typeName, Modifier typeModifiers, IReadOnlyList<CallExpression> compilerMetadata)
     {
         _typeName = typeName;
         _typeModifiers = typeModifiers;
+        _compilerMetadata = compilerMetadata;
     }
 
     public SyntacticObjectType? ParseToken(Token token)
@@ -113,7 +116,7 @@ internal class TypeParser
                 return null;
             case "}":
                 _isCompleted = true;
-                return new SyntacticObjectType(token.Position, _typeName, _typeModifiers, _accumulatedMembers);
+                return new SyntacticObjectType(token.Position, _typeName, _typeModifiers, _accumulatedMembers, _compilerMetadata);
             case "(":
                 if (_activeTypeDeclaration == null)
                 {
@@ -134,6 +137,7 @@ internal class TypeParser
             case ";":
             case ".":
             case "#":
+            case "\"":
                 throw new AscertainException(AscertainErrorCode.ParserIllegalCharacterInTypeDefinition,
                     $"Character {tokenValue} at {token.Position} is illegal in type definition");
         }

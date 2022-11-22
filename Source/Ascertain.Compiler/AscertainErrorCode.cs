@@ -30,7 +30,8 @@ public enum AscertainErrorCode
     ParserTooManyIdentifiersInParameterDeclaration = 0x00020024,
     ParserNameMissingInParameterDeclaration = 0x00020025,
     ParserTypeMissingInParameterDeclaration = 0x00020026,
-    ParserIllegalCompilerMetadataInScope = 0x00020027,
+    ParserIllegalTokenInScope = 0x00020027,
+    ParserCompilerMetadataIsNotCallExpression = 0x00020028,
     
     AnalyzerMultipleTypesWithTheSameName = 0x00030001,
     AnalyzerSoughtTypeNotFound = 0x00030002,

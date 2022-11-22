@@ -45,33 +45,44 @@ public class Lexer
 
         var previousCharType = CharType.WhiteSpace;
         int tokenStart = 0;
-        
+        bool isInStringLiteral = false;
+
         for (int i = 0; i < input.Length; i++)
         {
             var charType = GetCharType(input[i]);
-            
-            // Insert a token cut
-            if (charType != previousCharType || previousCharType.IsOneTokenPerChar())
+
+            if (isInStringLiteral)
             {
-                if (previousCharType != CharType.WhiteSpace)
+                if (charType == CharType.StringLiteralDelimiter)
                 {
-                    tokens.Add(new Token(_buffer.Slice(tokenStart, i - tokenStart), _position));
+                    isInStringLiteral = false;
+                }
+            }
+            else
+            {
+                if (charType != previousCharType || previousCharType.IsOneTokenPerChar())
+                {
+                    if (previousCharType != CharType.WhiteSpace)
+                    {
+                        tokens.Add(new Token(_buffer.Slice(tokenStart, i - tokenStart), _position));
+                    }
+
+                    _position = _position with {CharIndex = _position.CharIndex + i - tokenStart};
+                    tokenStart = i;
                 }
 
-                _position = _position with { CharIndex = _position.CharIndex + i - tokenStart };
-                tokenStart = i;
-            }
-            
-            if (input[i] == '\n')
-            {
-                _position = _position with
+                previousCharType = charType;
+
+                if (charType == CharType.StringLiteralDelimiter)
                 {
-                    LineIndex = _position.LineIndex + 1, 
-                    CharIndex = 0
-                };
+                    isInStringLiteral = true;
+                }
             }
 
-            previousCharType = charType;
+            if (input[i] == '\n')
+            {
+                _position = new Position(LineIndex: _position.LineIndex + 1, CharIndex: 0);
+            }
         }
 
         _buffer = _buffer.Slice(tokenStart);
@@ -103,6 +114,8 @@ public class Lexer
                 case '=':
                 case '#':
                     return CharType.Operator;
+                case '"':
+                    return CharType.StringLiteralDelimiter;
                 default:
                     throw new AscertainException(AscertainErrorCode.LexerIllegalCharacter, $"illegal character {c} at {_position}");
             }
