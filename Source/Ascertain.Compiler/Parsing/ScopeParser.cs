@@ -6,12 +6,16 @@ public class ScopeParser : IStatementParser
 {
     private IStatementParser? _activeStatementParser = null;
 
-    private readonly List<IExpression> _accumulatedStatements = new();
+    private readonly List<BaseExpression> _accumulatedStatements = new();
     
     private bool _isCompleted;
 
-    public IExpression? ParseToken(Token token)
+    private Position? _position = null;
+
+    public BaseExpression? ParseToken(Token token)
     {
+        _position ??= token.Position;
+        
         if (_isCompleted)
         {
             throw new AscertainException(AscertainErrorCode.InternalErrorParserAttemptingToReuseCompletedTypeParser, $"The parser was already completed and cannot be reused for token at {token.Position}");
@@ -40,7 +44,7 @@ public class ScopeParser : IStatementParser
                     $"Character {tokenValue} at {token.Position} is illegal in a scope definition");
             case "}":
                 _isCompleted = true;
-                return new Scope(_accumulatedStatements);
+                return new Scope(_position.Value, _accumulatedStatements);
             case "{":
                 _activeStatementParser = new ScopeParser();
                 break;

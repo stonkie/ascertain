@@ -1,3 +1,5 @@
-﻿namespace Ascertain.Compiler.Analysis;
+﻿using Ascertain.Compiler.Parsing;
 
-public record ObjectType(QualifiedName Name, Dictionary<string, List<Member>> Members);
+namespace Ascertain.Compiler.Analysis;
+
+public record ObjectType(QualifiedName Name, Dictionary<string, List<Member>> Members, CompilerPrimitive? Primitive);

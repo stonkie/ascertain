@@ -40,6 +40,9 @@ public enum AscertainErrorCode
     AnalyzerInvalidModifierOnMember = 0x00030005,
     AnalyzerUnresolvedReference = 0x00030006,
     AnalyzerMemberWithDuplicateDefinition = 0x00030007,
+    AnalyzerCompilerMetadataExpressionInvalid = 0x00030008,
+    AnalyzerUnknownCompilerMetadata = 0x00030009,
+    AnalyzerPrimitiveCompilerMetadataInvalidParameters = 0x00030010,
 
     InternalErrorParserUnknownModifier = 0x10020001,
     InternalErrorParserAttemptingToReuseCompletedTypeParser = 0x10020002, // TODO : Some usages are not for TypeParser
@@ -50,5 +53,7 @@ public enum AscertainErrorCode
     
     InternalErrorGeneratorVerifierFailed = 0x10040001,
     InternalErrorGeneratorUnresolvedReference = 0x10040002,
-    InternalErrorTypeGeneratedMultipleTimes = 0x10040003,
+    InternalErrorGeneratorTypeGeneratedMultipleTimes = 0x10040003,
+    InternalErrorGeneratorUnknownPrimitiveType = 0x10040004,
+    InternalErrorGeneratorIsReused = 0x10040005,
 }

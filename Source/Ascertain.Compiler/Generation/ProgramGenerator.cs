@@ -1,5 +1,7 @@
-﻿using System.Text;
+﻿using System.Drawing;
+using System.Text;
 using Ascertain.Compiler.Analysis;
+using Ascertain.Compiler.Parsing;
 using LLVMSharp;
 using LLVMSharp.Interop;
 
@@ -9,9 +11,17 @@ public class ProgramGenerator
 {
     private LLVMModuleRef _module;
     
+    private readonly Lazy<LLVMTypeRef> _pointerType = new(() =>
+    {
+        var anyType = LLVMTypeRef.CreateStruct(new LLVMTypeRef[] {}, false);
+        return LLVMTypeRef.CreatePointer(anyType, 0);
+    });
+    
+    
+    
     private readonly Dictionary<QualifiedName, ObjectType> _remainingTypes = new();
     private readonly Dictionary<QualifiedName, LLVMTypeRef> _generatedTypes = new();
-
+    
     public ProgramGenerator(LLVMModuleRef module, ObjectType topLevelType)
     {
         _module = module;
@@ -20,6 +30,13 @@ public class ProgramGenerator
 
     public void Write()
     {
+        if (_pointerType.IsValueCreated)
+        {
+            throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorIsReused, "LLVM generator has already been used and cannot be reused.");
+        }
+
+        _ = _pointerType.Value;
+            
         while (_remainingTypes.Any())
         {
             var nextPair = _remainingTypes.First();
@@ -52,16 +69,26 @@ public class ProgramGenerator
                 var returnType = member.ReturnType.Get();
                 
                 yield return returnType;
+
+                List<LLVMTypeRef> passByParameterTypes = new();
                 
-                var functionType = LLVMTypeRef.CreateFunction(GetPassByType(returnType), new LLVMTypeRef[] { });
+                foreach (var parameter in member.Parameters)
+                {
+                    var parameterType = parameter.ObjectType.Get();
+                    yield return parameterType;
+                    passByParameterTypes.Add(GetPassByType(parameterType));
+                }
+                
+                var functionType = LLVMTypeRef.CreateFunction(GetPassByType(returnType), passByParameterTypes.ToArray());
                 var function = _module.AddFunction(name, functionType);
                 var block = function.AppendBasicBlock("");
                 var builder = _module.Context.CreateBuilder();
                 builder.PositionAtEnd(block);
-                builder.BuildRetVoid();
+                builder.BuildRet(LLVMValueRef.CreateConstNull(_pointerType.Value));
 
-                if (!function.VerifyFunction(LLVMVerifierFailureAction.LLVMReturnStatusAction))
+                if (!function.VerifyFunction(LLVMVerifierFailureAction.LLVMPrintMessageAction))
                 {
+                    //function.
                     throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorVerifierFailed, $"LLVM verification failed for function : {name}.");
                 }
             }
@@ -73,7 +100,7 @@ public class ProgramGenerator
 
         if (_generatedTypes.ContainsKey(type.Name))
         {
-            throw new AscertainException(AscertainErrorCode.InternalErrorTypeGeneratedMultipleTimes, $"Type was generated multiple times : {type.Name}.");
+            throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorTypeGeneratedMultipleTimes, $"Type was generated multiple times : {type.Name}.");
         }
 
         LLVMTypeRef typeRef = LLVMTypeRef.CreateStruct(new LLVMTypeRef[] {}, false);
@@ -82,17 +109,18 @@ public class ProgramGenerator
 
     private LLVMTypeRef GetPassByType(ObjectType type)
     {
-        return LLVMTypeRef.Void;
+        if (type.Primitive != null)
+        {
+            switch (type.Primitive.Type)
+            {
+                case PrimitiveType.Void:
+                    return _module.Context.VoidType;
+                default:
+                    throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorUnknownPrimitiveType, $"Unknown primitive type during generation : {type.Primitive.Type}.");        
+            }
+        }
 
-        // TODO : Need to implement attributes, plus the "Primitive("void")" attribute 
-        // if (type.Name == QualifiedName.Void) // TODO : Also needs to be non-extensible (when extensible types are added)
-        // {
-        //     return LLVMTypeRef.Void;
-        // }
-        // else if (type.Name == QualifiedName.Void)
-        // {
-        //     return LLVMTypeRef.Void;
-        // }
+        return _pointerType.Value;
     }
 
     private string GetMangledName(ObjectType type, Member member)

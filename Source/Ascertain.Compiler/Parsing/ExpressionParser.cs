@@ -5,14 +5,14 @@ namespace Ascertain.Compiler.Parsing;
 public class ExpressionParser : IStatementParser
 {
     private Token? _activeOperator = null;
-    private IExpression? _activeExpression = null;
+    private BaseExpression? _activeExpression = null;
 
     private ExpressionParser? _activeAssignationSource = null;
     private ParameterListParser? _activeParameterListParser = null; 
     
     private bool _isCompleted;
 
-    public IExpression? ParseToken(Token token)
+    public BaseExpression? ParseToken(Token token)
     {
         if (_isCompleted)
         {
@@ -21,7 +21,7 @@ public class ExpressionParser : IStatementParser
 
         if (_activeAssignationSource != null)
         {
-            IExpression? assignationSource = _activeAssignationSource.ParseToken(token);
+            BaseExpression? assignationSource = _activeAssignationSource.ParseToken(token);
 
             if (assignationSource != null)
             {
@@ -31,7 +31,7 @@ public class ExpressionParser : IStatementParser
                 }
                 
                 _isCompleted = true;
-                return new AssignationExpression(_activeExpression, assignationSource);
+                return new AssignationExpression(_activeExpression.Position, _activeExpression, assignationSource);
             }
             
             return null;
@@ -39,7 +39,7 @@ public class ExpressionParser : IStatementParser
         
         if (_activeParameterListParser != null)
         {
-            List<IExpression>? parameters = _activeParameterListParser.ParseToken(token);
+            List<BaseExpression>? parameters = _activeParameterListParser.ParseToken(token);
             if (parameters != null)
             {
                 if (_activeExpression == null)
@@ -47,7 +47,7 @@ public class ExpressionParser : IStatementParser
                     throw new AscertainException(AscertainErrorCode.InternalErrorParserCallOnNullExpression, $"The parser accepted a call for an empty destination expression at {token.Position}");
                 }
 
-                _activeExpression = new CallExpression(_activeExpression, parameters);
+                _activeExpression = new CallExpression(_activeExpression.Position, _activeExpression, parameters);
                 _activeParameterListParser = null;
             }
 
@@ -114,7 +114,7 @@ public class ExpressionParser : IStatementParser
                         throw new AscertainException(AscertainErrorCode.InternalErrorParserAccessMemberOnNullExpression, $"The identifier at {token.Position} is attempting to define an access member on a null expression.");    
                     }
 
-                    _activeExpression = new AccessMemberExpression(_activeExpression, token);
+                    _activeExpression = new AccessMemberExpression(_activeExpression.Position, _activeExpression, token.Value.ToString());
                     break;
                 default:
                     throw new AscertainException(AscertainErrorCode.InternalErrorParserUnknownOperator, $"The identifier at {token.Position} was detected as an operator but it is has no implementation.");
@@ -127,7 +127,7 @@ public class ExpressionParser : IStatementParser
                 throw new AscertainException(AscertainErrorCode.ParserIdentifiersNotSeparatedByOperator, $"The identifier at {token.Position} follows an expression without an operator.");
             }
             
-            _activeExpression = new VariableExpression(token);
+            _activeExpression = new VariableExpression(token.Position, token.Value.ToString());
             return null;
         }
         
@@ -135,62 +135,24 @@ public class ExpressionParser : IStatementParser
     }
 }
 
-public class VariableExpression : IExpression
-{
-    public Token Token { get; }
+public record VariableExpression(Position Position, string Name) : BaseExpression(Position);
 
-    public VariableExpression(Token token)
-    {
-        Token = token;
-    }
-}
+public record CallExpression(Position Position, BaseExpression Callable, List<BaseExpression> Parameters) : BaseExpression(Position);
 
-public class CallExpression : IExpression
-{
-    public IExpression Callable { get; }
-    public List<IExpression> Parameters { get; }
+public record AssignationExpression(Position Position, BaseExpression Destination, BaseExpression Source) : BaseExpression(Position);
 
-    public CallExpression(IExpression callable, List<IExpression> parameters)
-    {
-        Callable = callable;
-        Parameters = parameters;
-    }
-}
-
-public class AssignationExpression : IExpression
-{
-    private readonly IExpression _destination;
-    private readonly IExpression _source;
-
-    public AssignationExpression(IExpression destination, IExpression source)
-    {
-        _destination = destination;
-        _source = source;
-    }
-}
-
-public class AccessMemberExpression : IExpression
-{
-    public IExpression Parent { get; }
-    public Token Member { get; }
-
-    public AccessMemberExpression(IExpression parent, Token member)
-    {
-        Parent = parent;
-        Member = member;
-    }
-}
+public record AccessMemberExpression(Position Position, BaseExpression Parent, string MemberName) : BaseExpression(Position);
 
 public class ParameterListParser
 {
-    public List<IExpression>? ParseToken(Token token)
+    public List<BaseExpression>? ParseToken(Token token)
     {
         var tokenValue = token.Value.Span;
 
         if (tokenValue.Equals(")".AsSpan(), StringComparison.InvariantCulture))
         {
             // TODO : Complete parameter list parsing
-            return new List<IExpression>();
+            return new List<BaseExpression>();
         }
 
         return null;

@@ -1,5 +1,5 @@
-﻿namespace Ascertain.Compiler.Parsing;
+﻿using Ascertain.Compiler.Lexing;
 
-public interface IExpression
-{
-}
+namespace Ascertain.Compiler.Parsing;
+
+public abstract record BaseExpression(Position Position);

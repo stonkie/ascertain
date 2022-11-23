@@ -40,10 +40,10 @@ public class ParserTest
             Assert.Empty(callExpression.Parameters);
 
             var accessMemberExpression = Assert.IsType<AccessMemberExpression>(callExpression.Callable);
-            Assert.Equal("GetFileSystem", accessMemberExpression.Member.Value.Span.ToString());
+            Assert.Equal("GetFileSystem", accessMemberExpression.MemberName);
 
             var variableExpression = Assert.IsType<VariableExpression>(accessMemberExpression.Parent);
-            Assert.Equal("system", variableExpression.Token.Value.Span.ToString());
+            Assert.Equal("system", variableExpression.Name);
         }
 
         var methodType = Assert.IsType<SyntacticMember>(member).TypeDeclaration;

@@ -1,11 +1,5 @@
-﻿namespace Ascertain.Compiler.Parsing;
+﻿using Ascertain.Compiler.Lexing;
 
-public class Scope : IScope
-{
-    public IReadOnlyCollection<IExpression> Statements { get; }
+namespace Ascertain.Compiler.Parsing;
 
-    public Scope(IReadOnlyCollection<IExpression> statements)
-    {
-        Statements = statements;
-    }
-}
+public record Scope(Position Position, IReadOnlyCollection<BaseExpression> Statements) : BaseExpression(Position);

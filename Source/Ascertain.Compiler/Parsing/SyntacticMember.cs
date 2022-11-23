@@ -8,9 +8,9 @@ public class SyntacticMember
     public string Name { get; }
     public Modifier Modifiers { get; }
     public TypeDeclaration TypeDeclaration { get; }
-    public IExpression Expression { get; }
+    public BaseExpression Expression { get; }
 
-    public SyntacticMember(Position position, string name, Modifier modifiers, TypeDeclaration typeDeclaration, IExpression expression)
+    public SyntacticMember(Position position, string name, Modifier modifiers, TypeDeclaration typeDeclaration, BaseExpression expression)
     {
         Position = position;
         Name = name;

@@ -14,13 +14,13 @@ public class FileParser
     {
         if (_activeCompilerMetadataParser != null)
         {
-            IExpression? compilerMetadataExpression = _activeCompilerMetadataParser.ParseToken(token);
+            BaseExpression? compilerMetadataExpression = _activeCompilerMetadataParser.ParseToken(token);
 
             if (compilerMetadataExpression != null)
             {
-                if (compilerMetadataExpression is CallExpression callExpressionn)
+                if (compilerMetadataExpression is CallExpression callExpression)
                 {
-                    _activeCompilerMetadata.Add(callExpressionn);    
+                    _activeCompilerMetadata.Add(callExpression);    
                 }
                 else
                 {

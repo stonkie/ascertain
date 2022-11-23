@@ -83,8 +83,33 @@ internal class Analyzer
             var member = AnalyzeMember(syntacticMember);
             members[syntacticMember.Name].Add(member);
         }
+
+        foreach (CallExpression metadata in type.CompilerMetadata)
+        {
+            if (metadata.Callable is VariableExpression variable)
+            {
+                switch (variable.Name)
+                {
+                    case "Primitive":
+                        if (metadata.Parameters.Count != 1)
+                        {
+                            throw new AscertainException(AscertainErrorCode.AnalyzerPrimitiveCompilerMetadataInvalidParameters, $"The primitive compiler metadata at {metadata.Position} has an invalid number of parameters.");    
+                        }
+
+                        var primitiveType = metadata.Parameters.Single();
+                        
+                        break;
+                    default:
+                        throw new AscertainException(AscertainErrorCode.AnalyzerUnknownCompilerMetadata, $"The compiler metadata {variable.Name} at {metadata.Position} is unrecognized.");
+                }
+            }
+            else
+            {
+                throw new AscertainException(AscertainErrorCode.AnalyzerCompilerMetadataExpressionInvalid, $"The compiler metadata on {type.Name} at {metadata.Position} does not have a valid #Name(literal1, ...); format.");
+            }
+        }
         
-        return new ObjectType(new QualifiedName(type.Name), members);
+        return new ObjectType(new QualifiedName(type.Name), members, null);
     }
 
     private Member AnalyzeMember(SyntacticMember member)

@@ -10,7 +10,7 @@ namespace Ascertain.Compiler.Test;
 public class GeneratorTest
 {
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate void NewProgramDelegate();
+    private delegate IntPtr NewProgramDelegate(IntPtr program);
 
     [Fact]
     public void BasicAnalysis()
@@ -39,7 +39,7 @@ public class GeneratorTest
         var engine = module.CreateMCJITCompiler();
         var entryPoint = engine.FindFunction("Function_Program_New_System");
         var entryPointDelegate = engine.GetPointerToGlobal<NewProgramDelegate>(entryPoint);
-        entryPointDelegate();
+        entryPointDelegate(IntPtr.Zero);
         
     }
 }
