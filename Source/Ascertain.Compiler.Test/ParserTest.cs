@@ -33,16 +33,16 @@ public class ParserTest
 
         // Method content
         {
-            var methodScope = Assert.IsType<Scope>(member.Expression);
+            var methodScope = Assert.IsType<ScopeSyntacticExpression>(member.Expression);
             Assert.Equal(1, methodScope.Statements.Count);
 
-            var callExpression = Assert.IsType<CallExpression>(methodScope.Statements.Single());
+            var callExpression = Assert.IsType<CallSyntacticExpression>(methodScope.Statements.Single());
             Assert.Empty(callExpression.Parameters);
 
-            var accessMemberExpression = Assert.IsType<AccessMemberExpression>(callExpression.Callable);
+            var accessMemberExpression = Assert.IsType<AccessMemberSyntacticExpression>(callExpression.Callable);
             Assert.Equal("GetFileSystem", accessMemberExpression.MemberName);
 
-            var variableExpression = Assert.IsType<VariableExpression>(accessMemberExpression.Parent);
+            var variableExpression = Assert.IsType<AccessVariableSyntacticExpression>(accessMemberExpression.Parent);
             Assert.Equal("system", variableExpression.Name);
         }
 

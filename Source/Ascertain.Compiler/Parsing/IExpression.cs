@@ -2,4 +2,4 @@
 
 namespace Ascertain.Compiler.Parsing;
 
-public abstract record BaseExpression(Position Position);
+public abstract record BaseSyntacticExpression(Position Position);

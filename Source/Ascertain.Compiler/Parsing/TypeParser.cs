@@ -7,7 +7,7 @@ internal class TypeParser
 {
     private readonly string _typeName;
     private readonly Modifier _typeModifiers;
-    private readonly IReadOnlyList<CallExpression> _compilerMetadata;
+    private readonly IReadOnlyList<CallSyntacticExpression> _compilerMetadata;
 
     private Modifier _activeModifiers = 0;
     private TypeDeclaration? _activeTypeDeclaration;
@@ -20,7 +20,7 @@ internal class TypeParser
 
     private bool _isCompleted;
 
-    public TypeParser(string typeName, Modifier typeModifiers, IReadOnlyList<CallExpression> compilerMetadata)
+    public TypeParser(string typeName, Modifier typeModifiers, IReadOnlyList<CallSyntacticExpression> compilerMetadata)
     {
         _typeName = typeName;
         _typeModifiers = typeModifiers;

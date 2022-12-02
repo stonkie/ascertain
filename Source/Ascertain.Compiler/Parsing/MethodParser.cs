@@ -8,7 +8,7 @@ public class MethodParser : IMemberParser
     private readonly Modifier _methodModifiers;
     private readonly TypeDeclaration _typeDeclaration;
 
-    private readonly IStatementParser _activeScopeParser;
+    private readonly ScopeParser _activeScopeParser;
     
     private bool _isCompleted;
     
@@ -27,7 +27,7 @@ public class MethodParser : IMemberParser
             throw new AscertainException(AscertainErrorCode.InternalErrorParserAttemptingToReuseCompletedTypeParser, $"The parser was already completed and cannot be reused for token at {token.Position}");
         }
 
-        var scope = _activeScopeParser.ParseToken(token);
+        var scope = _activeScopeParser.ParseScopeToken(token);
 
         if (scope != null)
         {

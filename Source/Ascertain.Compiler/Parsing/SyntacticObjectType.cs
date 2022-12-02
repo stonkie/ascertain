@@ -3,4 +3,4 @@
 namespace Ascertain.Compiler.Parsing;
 
 public record SyntacticObjectType(Position Position, string Name, Modifier Modifiers, List<SyntacticMember> Members,
-    IReadOnlyList<CallExpression> CompilerMetadata);
+    IReadOnlyList<CallSyntacticExpression> CompilerMetadata);

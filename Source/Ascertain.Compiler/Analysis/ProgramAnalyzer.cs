@@ -28,7 +28,7 @@ public class ProgramAnalyzer
         using StringReader reader = new StringReader(Compiler.System);
         var systemTypes = new Parser(new Lexer(reader).GetTokens()).GetTypes();
         
-        Analyzer analyzer = new(_types.Union(systemTypes), _programTypeName);
-        return await analyzer.GetObjectType();
+        SurfaceAnalyzer surfaceAnalyzer = new(_types.Union(systemTypes), _programTypeName);
+        return await surfaceAnalyzer.GetObjectType();
     }
 }

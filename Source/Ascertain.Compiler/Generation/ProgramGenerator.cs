@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Reflection.Metadata;
 using System.Text;
 using Ascertain.Compiler.Analysis;
 using Ascertain.Compiler.Parsing;
@@ -62,34 +63,45 @@ public class ProgramGenerator
     {
         foreach (var member in type.Members.Values.SelectMany(m => m))
         {
-            string name = GetMangledName(type, member);
+            string memberName = GetMangledName(type, member);
 
-            if (member.Parameters != null)
+            if (member.ReturnType is AnonymousCallableType {ResolvedType: { } method})
             {
-                var returnType = member.ReturnType.Get();
+                var returnType = method.ReturnType.ResolvedType;
                 
                 yield return returnType;
 
                 List<LLVMTypeRef> passByParameterTypes = new();
                 
-                foreach (var parameter in member.Parameters)
+                foreach (var parameter in method.Parameters)
                 {
-                    var parameterType = parameter.ObjectType.Get();
+                    var parameterType = parameter.ObjectType.ResolvedType;
                     yield return parameterType;
                     passByParameterTypes.Add(GetPassByType(parameterType));
                 }
                 
                 var functionType = LLVMTypeRef.CreateFunction(GetPassByType(returnType), passByParameterTypes.ToArray());
-                var function = _module.AddFunction(name, functionType);
+                var function = _module.AddFunction(memberName, functionType);
+                Dictionary<string, LLVMValueRef> namedVariables = new();
+
+                for (int parameterIndex = 0; parameterIndex < function.Params.Length; parameterIndex++)
+                {
+                    string variableName = method.Parameters[parameterIndex].Name;
+                    function.Params[parameterIndex].Name = variableName;
+                    
+                    namedVariables[variableName] = function.Params[parameterIndex];
+                }
+
                 var block = function.AppendBasicBlock("");
                 var builder = _module.Context.CreateBuilder();
                 builder.PositionAtEnd(block);
+                
+                
                 builder.BuildRet(LLVMValueRef.CreateConstNull(_pointerType.Value));
 
                 if (!function.VerifyFunction(LLVMVerifierFailureAction.LLVMPrintMessageAction))
                 {
-                    //function.
-                    throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorVerifierFailed, $"LLVM verification failed for function : {name}.");
+                    throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorVerifierFailed, $"LLVM verification failed for function : {memberName}.");
                 }
             }
             else
@@ -123,34 +135,40 @@ public class ProgramGenerator
         return _pointerType.Value;
     }
 
-    private string GetMangledName(ObjectType type, Member member)
+    private string GetMangledName(ObjectType parentType, Member member)
     {
-        if (member.Parameters == null)
+        if (member.ReturnType is ObjectTypeReference)
         {
-            return $"Property_{type.Name}_{member.Name}";
+            return $"Property_{parentType.Name}_{member.Name}";
         }
 
-        StringBuilder builder = new StringBuilder();
-        builder.Append("Function_");
-        builder.Append(type.Name);
-        builder.Append("_");
-        
-        builder.Append(member.Name);
-        builder.Append("_");
-        
-        foreach (var parameter in member.Parameters)
+        if (member.ReturnType is AnonymousCallableType {ResolvedType: {} methodType})
         {
-            builder.Append(GetMangledName(parameter.ObjectType));
+            StringBuilder builder = new StringBuilder();
+            builder.Append("Function_");
+            builder.Append(parentType.Name);
             builder.Append("_");
+        
+            builder.Append(member.Name);
+            builder.Append("_");
+        
+            foreach (var parameter in methodType.Parameters)
+            {
+                builder.Append(GetMangledName(parameter.ObjectType.ResolvedType));
+                builder.Append("_");
+            }
+
+            builder.Remove(builder.Length - 1, 1); // Remove trailing separator
+
+            return builder.ToString();
         }
 
-        builder.Remove(builder.Length - 1, 1); // Remove trailing separator
-
-        return builder.ToString();
+        throw new AscertainException(AscertainErrorCode.InternalErrorUnknownTypeClass, $"Unknown type class : {member.ReturnType.ResolvedType}.");
     }
 
-    private string GetMangledName(ObjectTypeReference typeReference)
+    private string GetMangledName(ObjectType parentType)
     {
-        return typeReference.Get().Name.ToString();
+        // TODO : Implement generics
+        return parentType.Name.ToString();
     }
 }

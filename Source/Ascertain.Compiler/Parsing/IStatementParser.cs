@@ -4,5 +4,5 @@ namespace Ascertain.Compiler.Parsing;
 
 public interface IStatementParser
 {
-    BaseExpression? ParseToken(Token token);
+    BaseSyntacticExpression? ParseToken(Token token);
 }

@@ -4,7 +4,7 @@ namespace Ascertain.Compiler.Analysis;
 
 public class TypeRepository
 {
-    private readonly Dictionary<QualifiedName, ObjectType> _analyzedTypes = new();
+    private readonly Dictionary<QualifiedName, BaseType> _analyzedTypes = new();
     private readonly Dictionary<QualifiedName, List<ObjectTypeReference>> _references = new();
 
     public bool Contains(QualifiedName typeName)
@@ -12,15 +12,15 @@ public class TypeRepository
         return _analyzedTypes.ContainsKey(typeName);
     }
 
-    public void Add(QualifiedName name, ObjectType objectType)
+    public void Add(QualifiedName name, ObjectType baseType)
     {
-        _analyzedTypes.Add(name, objectType);
+        _analyzedTypes.Add(name, baseType);
 
         if (_references.ContainsKey(name))
         {
             foreach (var reference in _references[name])
             {
-                reference.ResolvedType = objectType;
+                reference.ResolvedType = baseType;
             }
         }
     }

@@ -4,15 +4,26 @@ namespace Ascertain.Compiler.Parsing;
 
 public class ScopeParser : IStatementParser
 {
+    public ScopeParser Test()
+    {
+        throw new NotImplementedException();
+    }
+
     private IStatementParser? _activeStatementParser = null;
 
-    private readonly List<BaseExpression> _accumulatedStatements = new();
+    private readonly List<BaseSyntacticExpression> _accumulatedStatements = new();
     
     private bool _isCompleted;
 
     private Position? _position = null;
 
-    public BaseExpression? ParseToken(Token token)
+    // May only return a scope, this is just to bypass the missing return type covariance on interface implementation
+    public BaseSyntacticExpression? ParseToken(Token token)
+    {
+        return ParseScopeToken(token);
+    }
+    
+    public ScopeSyntacticExpression? ParseScopeToken(Token token)
     {
         _position ??= token.Position;
         
@@ -44,7 +55,7 @@ public class ScopeParser : IStatementParser
                     $"Character {tokenValue} at {token.Position} is illegal in a scope definition");
             case "}":
                 _isCompleted = true;
-                return new Scope(_position.Value, _accumulatedStatements);
+                return new ScopeSyntacticExpression(_position.Value, _accumulatedStatements);
             case "{":
                 _activeStatementParser = new ScopeParser();
                 break;

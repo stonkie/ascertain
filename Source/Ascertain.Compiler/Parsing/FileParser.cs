@@ -6,7 +6,7 @@ public class FileParser
 {
     private Modifier _activeModifiers = 0;
     private string? _activeName;
-    private List<CallExpression> _activeCompilerMetadata = new();
+    private List<CallSyntacticExpression> _activeCompilerMetadata = new();
     private TypeParser? _activeTypeParser;
     private ExpressionParser? _activeCompilerMetadataParser;
     
@@ -14,11 +14,11 @@ public class FileParser
     {
         if (_activeCompilerMetadataParser != null)
         {
-            BaseExpression? compilerMetadataExpression = _activeCompilerMetadataParser.ParseToken(token);
+            BaseSyntacticExpression? compilerMetadataExpression = _activeCompilerMetadataParser.ParseToken(token);
 
             if (compilerMetadataExpression != null)
             {
-                if (compilerMetadataExpression is CallExpression callExpression)
+                if (compilerMetadataExpression is CallSyntacticExpression callExpression)
                 {
                     _activeCompilerMetadata.Add(callExpression);    
                 }

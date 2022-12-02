@@ -2,14 +2,15 @@
 
 namespace Ascertain.Compiler.Analysis;
 
-internal class Analyzer
+internal class SurfaceAnalyzer
 {
     private readonly IAsyncEnumerable<SyntacticObjectType> _types; // TODO : Make types stream filterable by namespace
     private readonly string _soughtType; // Either a Program (new is main) or an Exposed (all public are C extern functions) object. 
 
-    private readonly TypeRepository _typeRepository = new(); 
+    private readonly TypeRepository _typeRepository = new();
+    private readonly TypeValidator _typeValidator = new();
     
-    public Analyzer(IAsyncEnumerable<SyntacticObjectType> types, string soughtType)
+    public SurfaceAnalyzer(IAsyncEnumerable<SyntacticObjectType> types, string soughtType)
     {
         _types = types;
         _soughtType = soughtType;
@@ -28,15 +29,13 @@ internal class Analyzer
             {
                 throw new AscertainException(AscertainErrorCode.AnalyzerMultipleTypesWithTheSameName, $"A type of name {type.Name} was found {type.Position}, but had already been found before.");
             }
-            else
-            {
-                ObjectType objectType = AnalyzeType(type);
-                _typeRepository.Add(new QualifiedName(type.Name), objectType);
 
-                if (type.Name == _soughtType)
-                {
-                    soughtObjectType = objectType;
-                }
+            ObjectType objectType = AnalyzeType(type);
+            _typeRepository.Add(new QualifiedName(type.Name), objectType);
+
+            if (type.Name == _soughtType)
+            {
+                soughtObjectType = objectType;
             }
         }
 
@@ -50,6 +49,8 @@ internal class Analyzer
             // TODO : Don't abort on the first error
             throw new AscertainException(AscertainErrorCode.AnalyzerUnresolvedReference, $"The type {unresolvedReference.Name} at {unresolvedReference.Position} could not be resolved to a declared type.");
         }
+        
+        _typeValidator.Validate();
         
         return soughtObjectType;
     }
@@ -84,9 +85,9 @@ internal class Analyzer
             members[syntacticMember.Name].Add(member);
         }
 
-        foreach (CallExpression metadata in type.CompilerMetadata)
+        foreach (CallSyntacticExpression metadata in type.CompilerMetadata)
         {
-            if (metadata.Callable is VariableExpression variable)
+            if (metadata.Callable is AccessVariableSyntacticExpression variable)
             {
                 switch (variable.Name)
                 {
@@ -128,10 +129,27 @@ internal class Analyzer
             throw new NotImplementedException("There is no implementation for properties yet");
         }
 
+        // TODO : Pass by reference return values and parameters can extend lifetime.
+        var returnType = _typeRepository.GetTypeReference(member.TypeDeclaration.Position, new QualifiedName(member.TypeDeclaration.ReturnTypeName));
+        var parameters = parameterDeclarations.Select(AnalyzeParameterDeclaration).ToList();
+        
+        Dictionary<string, Variable> variables = new();
+ 
+        foreach (var parameter in parameters)
+        {
+            // Differentiate mutables
+            variables.Add(parameter.Name, new Variable(parameter.ObjectType));
+        }
+
+        var expressionAnalyzer = new ScopeAnalyzer(_typeValidator, member.Expression, variables, returnType);
+
+        var scope = expressionAnalyzer.Analyze();
+
+        _typeValidator.AddImplicitCast(returnType, scope.ObjectReturnType, member.Expression.Statements.FirstOrDefault()?.Position ?? member.Expression.Position);
+
         return new Member(
             member.Name,
-            _typeRepository.GetTypeReference(member.TypeDeclaration.Position, new QualifiedName(member.TypeDeclaration.ReturnTypeName)), 
-            parameterDeclarations.Select(AnalyzeParameterDeclaration).ToList(),
+            new AnonymousCallableType(member.Position, returnType, parameters),
             isPublic,
             isStatic);
     }

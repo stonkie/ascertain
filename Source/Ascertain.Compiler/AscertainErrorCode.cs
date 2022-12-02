@@ -43,7 +43,18 @@ public enum AscertainErrorCode
     AnalyzerCompilerMetadataExpressionInvalid = 0x00030008,
     AnalyzerUnknownCompilerMetadata = 0x00030009,
     AnalyzerPrimitiveCompilerMetadataInvalidParameters = 0x00030010,
-
+    AnalyzerAssignationDestinationMustBeAVariable = 0x00030011,
+    AnalyzerAssignationDestinationVariableMustExist = 0x00030012,
+    AnalyzerScopeIsEmptyButReturnValueIsRequired = 0x00030013,
+    AnalyzerIncompatibleTypes = 0x00030014,
+    AnalyzerLastExpressionHasNoReturnButReturnValueIsRequired = 0x00030015,
+    AnalyzerCallableIsNotAMember = 0x00030016,
+    AnalyzerCallableIsNotAMethod = 0x00030017,
+    AnalyzerMethodParameterDoesNotReturnAValue = 0x00030018,
+    AnalyzerMethodCallParametersDoNotMatchMethodDeclaration = 0x00030019,
+    AnalyzerMethodParameterReturnsAMethod = 0x00030020,
+    AnalyzerMethodReturnsAMethod = 0x00030021,
+    
     InternalErrorParserUnknownModifier = 0x10020001,
     InternalErrorParserAttemptingToReuseCompletedTypeParser = 0x10020002, // TODO : Some usages are not for TypeParser
     InternalErrorParserUnknownOperator = 0x10020003,
@@ -51,9 +62,14 @@ public enum AscertainErrorCode
     InternalErrorParserCallOnNullExpression = 0x10020005,
     InternalErrorParserAccessMemberOnNullExpression = 0x10020006,
     
+    InternalErrorAnalyzerUnresolvedReferenceAfterAnalysis = 0x10030001,
+    InternalErrorAnalyzerCallableIsNothing = 0x10030002,
+    InternalErrorAnalyzerParameterReturnsNothing = 0x10030003,
+    InternalErrorAnalyzerParameterReturnsAMethod = 0x10030004,
+
     InternalErrorGeneratorVerifierFailed = 0x10040001,
-    InternalErrorGeneratorUnresolvedReference = 0x10040002,
     InternalErrorGeneratorTypeGeneratedMultipleTimes = 0x10040003,
     InternalErrorGeneratorUnknownPrimitiveType = 0x10040004,
     InternalErrorGeneratorIsReused = 0x10040005,
+    InternalErrorUnknownTypeClass = 0x10040006,
 }
