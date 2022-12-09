@@ -1,10 +1,11 @@
-﻿using Ascertain.Compiler.Lexing;
+﻿using Ascertain.Compiler.Analysis.Surface;
+using Ascertain.Compiler.Lexing;
 
 namespace Ascertain.Compiler.Analysis;
 
-public class TypeRepository
+public class SurfaceTypeRepository
 {
-    private readonly Dictionary<QualifiedName, BaseType> _analyzedTypes = new();
+    private readonly Dictionary<QualifiedName, SurfaceObjectType> _analyzedTypes = new();
     private readonly Dictionary<QualifiedName, List<ObjectTypeReference>> _references = new();
 
     public bool Contains(QualifiedName typeName)
@@ -12,7 +13,7 @@ public class TypeRepository
         return _analyzedTypes.ContainsKey(typeName);
     }
 
-    public void Add(QualifiedName name, ObjectType baseType)
+    public void Add(QualifiedName name, SurfaceObjectType baseType)
     {
         _analyzedTypes.Add(name, baseType);
 
@@ -43,5 +44,10 @@ public class TypeRepository
     public IReadOnlyCollection<ObjectTypeReference> GetUnresolvedTypeReferences()
     {
         return _references.Values.SelectMany(r => r).Where(r => r.ResolvedType == null).ToList();
+    }
+
+    public List<SurfaceObjectType> GetAllTypes()
+    {
+        return _analyzedTypes.Values.ToList();
     }
 }

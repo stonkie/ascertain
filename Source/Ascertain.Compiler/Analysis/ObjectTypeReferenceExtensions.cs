@@ -1,8 +1,10 @@
-﻿namespace Ascertain.Compiler.Analysis;
+﻿using Ascertain.Compiler.Analysis.Surface;
+
+namespace Ascertain.Compiler.Analysis;
 
 public static class ObjectTypeReferenceExtensions
 {
-    public static ObjectType Get(this ObjectTypeReference reference)
+    public static SurfaceObjectType Get(this ObjectTypeReference reference)
     {
         if (reference.ResolvedType == null)
         {

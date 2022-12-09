@@ -10,9 +10,11 @@ public class AnalyzerTest
     [Fact]
     public void BasicAnalysis()
     {
-        var input = @"class Program { 
+        var input = @"class Program {
             public static New Program(System system) {
                 system.GetFileSystem();
+
+                new();
             }
         }";
 
@@ -23,7 +25,7 @@ public class AnalyzerTest
 
         var program = analyser.GetProgramType().GetAwaiter().GetResult();
 
-        var constructor = program.Members["New"].Single();
+        var constructor = program.SoughtType.Members["New"].Single();
 
         Assert.True(constructor.IsPublic);
         Assert.True(constructor.IsStatic);

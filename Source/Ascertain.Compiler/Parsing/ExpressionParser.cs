@@ -145,6 +145,8 @@ public record AccessMemberSyntacticExpression(Position Position, BaseSyntacticEx
 
 public class ParameterListParser
 {
+    private AccessVariableSyntacticExpression? _accessVariable = null;
+    
     public List<BaseSyntacticExpression>? ParseToken(Token token)
     {
         var tokenValue = token.Value.Span;
@@ -152,9 +154,24 @@ public class ParameterListParser
         if (tokenValue.Equals(")".AsSpan(), StringComparison.InvariantCulture))
         {
             // TODO : Complete parameter list parsing
-            return new List<BaseSyntacticExpression>();
+
+            if (_accessVariable != null)
+            {
+                return new List<BaseSyntacticExpression>() { _accessVariable };    
+            }
+            else
+            {
+                return new List<BaseSyntacticExpression>();
+            }
         }
 
+        if (_accessVariable != null)
+        {
+            throw new NotImplementedException("Single token parameters supported only");
+        }
+
+        _accessVariable = new(token.Position, tokenValue.ToString());
+        
         return null;
     }
 }

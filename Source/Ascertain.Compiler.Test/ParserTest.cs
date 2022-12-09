@@ -73,4 +73,26 @@ public class ParserTest
 
         Assert.Empty(voidType.Members);
     }
+    
+    [Fact]
+    public void ParseEmptyMethod()
+    {
+        var input = @"class Program { 
+            public static New Program() {
+            }
+        }";
+
+        using var reader = new StringReader(input);
+        Lexer lexer = new(reader);
+
+        var tokens = lexer.GetTokens();
+        var objects = new Parser(tokens).GetTypes().ToListAsync();
+        var type = objects.GetAwaiter().GetResult().Single();
+
+        var method = Assert.Single(type.Members);
+        Assert.Equal("New", method.Name);
+        Assert.NotNull(method.TypeDeclaration.ParameterDeclarations);
+        Assert.Empty(method.TypeDeclaration.ParameterDeclarations!);
+        Assert.Empty(method.Expression.Statements);
+    }
 }

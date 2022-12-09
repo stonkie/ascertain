@@ -1,19 +1,19 @@
-﻿using Ascertain.Compiler.Lexing;
+﻿using Ascertain.Compiler.Analysis.Surface;
 using Ascertain.Compiler.Parsing;
 
-namespace Ascertain.Compiler.Analysis;
+namespace Ascertain.Compiler.Analysis.Deep;
 
 public class ScopeAnalyzer
 {
-    private readonly TypeValidator _typeValidator;
+    private readonly IReadOnlyList<SurfaceObjectType> _accessibleSurfaceTypes;
     private readonly ScopeSyntacticExpression _scope;
     private readonly Dictionary<string, Variable> _variables;
-    private readonly ITypeReference<ObjectType>? _acceptedReturnType;
+    private readonly ITypeReference<SurfaceObjectType>? _acceptedReturnType;
 
-    public ScopeAnalyzer(TypeValidator typeValidator, ScopeSyntacticExpression scope,
-        IReadOnlyDictionary<string, Variable> variables, ITypeReference<ObjectType>? acceptedReturnType)
+    public ScopeAnalyzer(IReadOnlyList<SurfaceObjectType> accessibleSurfaceTypes, ScopeSyntacticExpression scope,
+        IReadOnlyDictionary<string, Variable> variables, ITypeReference<SurfaceObjectType>? acceptedReturnType)
     {
-        _typeValidator = typeValidator;
+        _accessibleSurfaceTypes = accessibleSurfaceTypes;
         _scope = scope;
         _variables = new Dictionary<string, Variable>(variables);
         _acceptedReturnType = acceptedReturnType;
@@ -28,14 +28,15 @@ public class ScopeAnalyzer
             expressions.Add(AnalyzeExpression(statement));
         }
 
-        var scopeReturnType = expressions.LastOrDefault()?.ReturnType;
+        var scopeReturnType = expressions.LastOrDefault()?.ReturnType ?? 
+                _accessibleSurfaceTypes.Single(t => t.Primitive?.Type == PrimitiveType.Void);;
 
-        if (scopeReturnType is not ObjectTypeReference objectReturnType)
+        if (scopeReturnType is not SurfaceObjectType objectReturnType)
         {
             throw new AscertainException(AscertainErrorCode.AnalyzerMethodReturnsAMethod,
                 $"The method at {_scope.Position} cannot return a method itself.");
         }
-        
+
         return new Scope(objectReturnType, expressions);
     }
 
@@ -44,7 +45,7 @@ public class ScopeAnalyzer
         switch (expression)
         {
             case ScopeSyntacticExpression scope:
-                var analyzer = new ScopeAnalyzer(_typeValidator, scope, _variables, _acceptedReturnType);
+                var analyzer = new ScopeAnalyzer(_accessibleSurfaceTypes, scope, _variables, _acceptedReturnType);
                 return analyzer.Analyze();
             
             case AssignationSyntacticExpression assignation:
@@ -56,19 +57,60 @@ public class ScopeAnalyzer
             case AccessMemberSyntacticExpression accessMember:
                 return AnalyzeAccessMember(accessMember);        
         
+            case AccessVariableSyntacticExpression accessVariable:
+                return AnalyzeAccessVariable(accessVariable);        
+
             default:
                 throw new NotImplementedException();
         }
         
     }
 
+    private BaseExpression AnalyzeAccessVariable(AccessVariableSyntacticExpression accessVariable)
+    {
+        if (!_variables.ContainsKey(accessVariable.Name))
+        {
+            var possibleTypeAccess = _accessibleSurfaceTypes.SingleOrDefault(t => t.Name == new QualifiedName(accessVariable.Name));
+
+            if (possibleTypeAccess == null)
+            {
+                throw new AscertainException(AscertainErrorCode.AnalyzerUnresolvedVariable,
+                    $"The variable {accessVariable.Name} referenced at {accessVariable.Position} does not exist.");    
+            }
+            
+            return new ReadStaticTypeExpression(possibleTypeAccess); 
+        }
+
+        return new ReadVariableExpression(_variables[accessVariable.Name]);
+    }
+
     private BaseExpression AnalyzeAccessMember(AccessMemberSyntacticExpression accessMember)
     {
         var parentExpression = AnalyzeExpression(accessMember.Parent);
-        
-        // _typeValidator.AddImplicitCast(parentExpression.ReturnType.
-        
-        throw new NotImplementedException();
+
+        if (parentExpression.ReturnType is not SurfaceObjectType parentType)
+        {
+            throw new AscertainException(AscertainErrorCode.AnalyzerAttemptedAccessToMemberOfAMethod,
+                $"There are no member to access on non object type {parentExpression.ReturnType} referenced at {accessMember.Position}.");
+        }
+
+        if (!parentType.Members.ContainsKey(accessMember.MemberName))
+        {
+            throw new AscertainException(AscertainErrorCode.AnalyzerAttemptedAccessToNonUndefinedMember,
+                $"There are no member named {accessMember.MemberName} on object type {parentExpression.ReturnType} referenced at {accessMember.Position}.");
+        }
+
+        if (parentType.Members[accessMember.MemberName].Count != 1)
+        {
+            // TODO : Support overload resolution
+            
+            throw new AscertainException(AscertainErrorCode.AnalyzerAttemptedAccessToOverloadedMember,
+                $"There are multiple members named {accessMember.MemberName} on object type {parentExpression.ReturnType} referenced at {accessMember.Position}.");
+        }
+
+        var returnType = parentType.Members[accessMember.MemberName].Single().ReturnType;
+
+        return new ReadMemberExpression(returnType.ResolvedType, parentExpression, accessMember.MemberName, parentType);
     }
 
     private BaseExpression AnalyzeCall(CallSyntacticExpression call)
@@ -98,14 +140,12 @@ public class ScopeAnalyzer
                 $"The method call at {call.Position} is made on a callable that is nothing.");
         }
         
-        if (method.ReturnType is not AnonymousCallableType callableTypeReference)
+        if (method.ReturnType is not SurfaceCallableType callableType)
         {
             throw new AscertainException(AscertainErrorCode.AnalyzerCallableIsNotAMethod,
-                $"The method call at {call.Position} is made on a {method.ReturnType.ResolvedType} which is not a method.");
+                $"The method call at {call.Position} is made on a {method.ReturnType} which is not a method.");
         }
 
-        var callableType = callableTypeReference.ResolvedType; // Anonymous types are always resolved.
-        
         List<BaseExpression> parameters = new();
 
         for (var index = 0; index < call.Parameters.Count; index++)
@@ -130,7 +170,7 @@ public class ScopeAnalyzer
         }
 
         // TODO : Do overload resolution without resorting to AssignableTo
-        bool isCallCompatibleWithSignature = callableType.AssignableTo(new AnonymousCallableType(call.Position, callableType.ReturnType,
+        bool isCallCompatibleWithSignature = callableType.AssignableTo(new AnonymousSurfaceCallableType(call.Position, callableType.ReturnType,
             parameters.Select(p =>
             {
                 if (p.ReturnType == null)
@@ -155,7 +195,7 @@ public class ScopeAnalyzer
                 $"which does not match the method declaration ({string.Join(", ", callableType.Parameters)}).");
         }
 
-        return new CallExpression(callableType.ReturnType, method, parameters);
+        return new CallExpression(callableType.ReturnType.ResolvedType, method, parameters);
     }
 
     private AssignationExpression AnalyzeAssignation(AssignationSyntacticExpression assignation)
@@ -187,44 +227,8 @@ public class ScopeAnalyzer
     }
 }
 
-public class TypeValidator
-{
-    private readonly List<(ITypeReference<ObjectType> Destination, ITypeReference<ObjectType>? Source, Position Position)> _implicitCasts = new();
+public record ReadStaticTypeExpression(SurfaceObjectType ObjectType) : BaseExpression(ObjectType);
 
-    public void AddImplicitCast(ObjectTypeReference destination, ObjectTypeReference? source, Position position)
-    {
-        if (destination.Name != source?.Name)
-        {
-            _implicitCasts.Add((destination, source, position));
-        }
-    }
+public record ReadMemberExpression(ISurfaceType ReturnType, BaseExpression ParentObject, string MemberName, SurfaceObjectType ParentReferenceType) : BaseExpression(ReturnType);
 
-    public void Validate()
-    {
-        foreach (var implicitCast in _implicitCasts)
-        {
-            var destinationType = implicitCast.Destination.ResolvedType;
-            if (implicitCast.Source == null)
-            {
-                if (destinationType.Primitive?.Type != PrimitiveType.Void)
-                {
-                    throw new AscertainException(AscertainErrorCode.AnalyzerIncompatibleTypes,
-                        $"At {implicitCast.Position}, no value is provided. A value that can be converted to type {implicitCast.Destination} is required.");
-                }
-            }
-            else if (!implicitCast.Source.ResolvedType.AssignableTo(destinationType))
-            {
-                throw new AscertainException(AscertainErrorCode.AnalyzerIncompatibleTypes,
-                    $"At {implicitCast.Position}, variable of type {implicitCast.Source} cannot be implicitly converted to type {implicitCast.Destination}.");
-            }
-        }
-    }
-}
-
-public abstract record BaseExpression(ITypeReference<BaseType> ReturnType);
-
-public record CallExpression(ObjectTypeReference ObjectReturnType, BaseExpression Method, List<BaseExpression> Parameters) : BaseExpression(ObjectReturnType);
-
-public record AssignationExpression(Variable Variable, BaseExpression Source) : BaseExpression(Variable.ObjectType);
-
-public record Scope(ObjectTypeReference ObjectReturnType, IReadOnlyList<BaseExpression> Expressions) : BaseExpression(ObjectReturnType);
+public record ReadVariableExpression(Variable Variable) : BaseExpression(Variable.ObjectType);

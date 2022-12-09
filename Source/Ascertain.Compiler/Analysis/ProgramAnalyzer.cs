@@ -1,4 +1,6 @@
 ﻿using System.Collections.Concurrent;
+using Ascertain.Compiler.Analysis.Deep;
+using Ascertain.Compiler.Analysis.Surface;
 using Ascertain.Compiler.Lexing;
 using Ascertain.Compiler.Parsing;
 
@@ -8,7 +10,6 @@ public class ProgramAnalyzer
 {
     private readonly IAsyncEnumerable<SyntacticObjectType> _types;
     private readonly string _programTypeName;
-    private Task<ObjectType>? _programType;
 
     public ProgramAnalyzer(IAsyncEnumerable<SyntacticObjectType> types, string programTypeName)
     {
@@ -16,19 +17,14 @@ public class ProgramAnalyzer
         _programTypeName = programTypeName;
     }
 
-    public async Task<ObjectType> GetProgramType()
-    {
-        _programType ??= AnalyzeProgramType();
-
-        return await _programType;
-    }
-
-    private async Task<ObjectType> AnalyzeProgramType()
+    public async Task<(SurfaceObjectType SoughtType, Func<SurfaceObjectType, ObjectType> TypeResolver)> GetProgramType()
     {
         using StringReader reader = new StringReader(Compiler.System);
         var systemTypes = new Parser(new Lexer(reader).GetTokens()).GetTypes();
         
-        SurfaceAnalyzer surfaceAnalyzer = new(_types.Union(systemTypes), _programTypeName);
-        return await surfaceAnalyzer.GetObjectType();
+        SurfaceAnalyzer surfaceAnalyzer = new(_types.Union(systemTypes));
+        DeepAnalyzer deepAnalyzer = new DeepAnalyzer(surfaceAnalyzer, _programTypeName);
+        
+        return await deepAnalyzer.GetSoughtType();
     }
 }

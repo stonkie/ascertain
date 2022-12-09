@@ -13,11 +13,13 @@ public class GeneratorTest
     private delegate IntPtr NewProgramDelegate(IntPtr program);
 
     [Fact]
-    public void BasicAnalysis()
+    public void BasicGeneration()
     {
         var input = @"class Program { 
             public static New Program(System system) {
                 system.GetFileSystem();
+
+                new();
             }
         }";
 
@@ -25,10 +27,10 @@ public class GeneratorTest
         Lexer lexer = new(reader);
         Parser parser = new(lexer.GetTokens());
         ProgramAnalyzer analyser = new(parser.GetTypes(), "Program");
-        var programType = analyser.GetProgramType().GetAwaiter().GetResult();
+        (var programType, var typeResolver) = analyser.GetProgramType().GetAwaiter().GetResult();
         
         using var module = LLVMModuleRef.CreateWithName("ascertain_program");
-        ProgramGenerator generator = new(module, programType);
+        ProgramGenerator generator = new(module, programType, typeResolver);
 
         generator.Write();
         

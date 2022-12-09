@@ -2,6 +2,8 @@
 using System.Reflection.Metadata;
 using System.Text;
 using Ascertain.Compiler.Analysis;
+using Ascertain.Compiler.Analysis.Deep;
+using Ascertain.Compiler.Analysis.Surface;
 using Ascertain.Compiler.Parsing;
 using LLVMSharp;
 using LLVMSharp.Interop;
@@ -11,7 +13,8 @@ namespace Ascertain.Compiler.Generation;
 public class ProgramGenerator
 {
     private LLVMModuleRef _module;
-    
+    private readonly Func<SurfaceObjectType, ObjectType> _analyzedTypeProvider;
+
     private readonly Lazy<LLVMTypeRef> _pointerType = new(() =>
     {
         var anyType = LLVMTypeRef.CreateStruct(new LLVMTypeRef[] {}, false);
@@ -23,10 +26,11 @@ public class ProgramGenerator
     private readonly Dictionary<QualifiedName, ObjectType> _remainingTypes = new();
     private readonly Dictionary<QualifiedName, LLVMTypeRef> _generatedTypes = new();
     
-    public ProgramGenerator(LLVMModuleRef module, ObjectType topLevelType)
+    public ProgramGenerator(LLVMModuleRef module, SurfaceObjectType topLevelType, Func<SurfaceObjectType, ObjectType> analyzedTypeProvider)
     {
         _module = module;
-        _remainingTypes.Add(topLevelType.Name, topLevelType);
+        _analyzedTypeProvider = analyzedTypeProvider;
+        _remainingTypes.Add(topLevelType.Name, _analyzedTypeProvider(topLevelType));
     }
 
     public void Write()
@@ -65,9 +69,9 @@ public class ProgramGenerator
         {
             string memberName = GetMangledName(type, member);
 
-            if (member.ReturnType is AnonymousCallableType {ResolvedType: { } method})
+            if (member.ReturnType is SurfaceCallableType method)
             {
-                var returnType = method.ReturnType.ResolvedType;
+                var returnType = _analyzedTypeProvider(method.ReturnType.ResolvedType);
                 
                 yield return returnType;
 
@@ -75,7 +79,7 @@ public class ProgramGenerator
                 
                 foreach (var parameter in method.Parameters)
                 {
-                    var parameterType = parameter.ObjectType.ResolvedType;
+                    var parameterType = _analyzedTypeProvider(parameter.ObjectType.ResolvedType);
                     yield return parameterType;
                     passByParameterTypes.Add(GetPassByType(parameterType));
                 }
@@ -137,12 +141,12 @@ public class ProgramGenerator
 
     private string GetMangledName(ObjectType parentType, Member member)
     {
-        if (member.ReturnType is ObjectTypeReference)
+        if (member.ReturnType is SurfaceObjectType)
         {
             return $"Property_{parentType.Name}_{member.Name}";
         }
 
-        if (member.ReturnType is AnonymousCallableType {ResolvedType: {} methodType})
+        if (member.ReturnType is SurfaceCallableType methodType)
         {
             StringBuilder builder = new StringBuilder();
             builder.Append("Function_");
@@ -154,7 +158,7 @@ public class ProgramGenerator
         
             foreach (var parameter in methodType.Parameters)
             {
-                builder.Append(GetMangledName(parameter.ObjectType.ResolvedType));
+                builder.Append(GetMangledName(_analyzedTypeProvider(parameter.ObjectType.ResolvedType)));
                 builder.Append("_");
             }
 
@@ -163,7 +167,7 @@ public class ProgramGenerator
             return builder.ToString();
         }
 
-        throw new AscertainException(AscertainErrorCode.InternalErrorUnknownTypeClass, $"Unknown type class : {member.ReturnType.ResolvedType}.");
+        throw new AscertainException(AscertainErrorCode.InternalErrorUnknownTypeClass, $"Unknown type class : {member.ReturnType}.");
     }
 
     private string GetMangledName(ObjectType parentType)

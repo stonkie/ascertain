@@ -54,7 +54,15 @@ public enum AscertainErrorCode
     AnalyzerMethodCallParametersDoNotMatchMethodDeclaration = 0x00030019,
     AnalyzerMethodParameterReturnsAMethod = 0x00030020,
     AnalyzerMethodReturnsAMethod = 0x00030021,
-    
+    AnalyzerSoughtMethodDoesNotExist = 0x00030022,
+    AnalyzerUnresolvedVariable = 0x00030023,
+    AnalyzerAttemptedAccessToMemberOfAMethod = 0x00030024,
+    AnalyzerAttemptedAccessToNonUndefinedMember = 0x00030025,
+    AnalyzerAttemptedAccessToOverloadedMember = 0x00030026,
+    AnalyzerMethodImplementationReturnTypeIncompatibleWithDeclaration = 0x00030028,
+    AnalyzerPrimitiveCompilerMetadataParameterIsNotStringLiteral = 0x00030029,
+    AnalyzerPrimitiveCompilerMetadataUnknownPrimitiveType = 0x00030030,
+
     InternalErrorParserUnknownModifier = 0x10020001,
     InternalErrorParserAttemptingToReuseCompletedTypeParser = 0x10020002, // TODO : Some usages are not for TypeParser
     InternalErrorParserUnknownOperator = 0x10020003,
@@ -66,6 +74,8 @@ public enum AscertainErrorCode
     InternalErrorAnalyzerCallableIsNothing = 0x10030002,
     InternalErrorAnalyzerParameterReturnsNothing = 0x10030003,
     InternalErrorAnalyzerParameterReturnsAMethod = 0x10030004,
+    InternalErrorAnalyzerSurfaceTypeDiscoveredMultipleTimes = 0x10030005,
+    InternalErrorAnalyzerSurfaceTypeWasNotDeepAnalyzed = 0x10030006,
 
     InternalErrorGeneratorVerifierFailed = 0x10040001,
     InternalErrorGeneratorTypeGeneratedMultipleTimes = 0x10040003,
