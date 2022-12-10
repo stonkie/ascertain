@@ -1,6 +1,6 @@
 ﻿namespace Ascertain.Compiler.Analysis.Surface;
 
-public record SurfaceObjectType(QualifiedName Name, Dictionary<string, List<SurfaceMember>> Members, CompilerPrimitive? Primitive) : ISurfaceType
+public record SurfaceObjectType(QualifiedName Name, Dictionary<string, List<SurfaceMember>> Members, CompilerPrimitiveType? Primitive) : ISurfaceType
 {
     public bool AssignableTo(ISurfaceType destination)
     {

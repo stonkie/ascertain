@@ -6,4 +6,4 @@ public enum PrimitiveType
     
 }
 
-public record CompilerPrimitive(PrimitiveType Type);
+public record CompilerPrimitiveType(PrimitiveType Type);

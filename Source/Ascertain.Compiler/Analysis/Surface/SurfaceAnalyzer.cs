@@ -69,7 +69,7 @@ public class SurfaceAnalyzer
             members[syntacticMember.Name].Add(member);
         }
 
-        CompilerPrimitive? primitive = null;
+        CompilerPrimitiveType? primitive = null;
 
         foreach (CallSyntacticExpression metadata in type.CompilerMetadata)
         {
@@ -77,7 +77,7 @@ public class SurfaceAnalyzer
             {
                 switch (variable.Name)
                 {
-                    case "Primitive":
+                    case "PrimitiveType":
                         if (metadata.Parameters.Count != 1)
                         {
                             throw new AscertainException(AscertainErrorCode.AnalyzerPrimitiveCompilerMetadataInvalidParameters, $"The primitive compiler metadata at {metadata.Position} has an invalid number of parameters.");    
@@ -95,7 +95,7 @@ public class SurfaceAnalyzer
                                 switch (primitiveValue)
                                 {
                                     case "void":
-                                        primitive = new CompilerPrimitive(PrimitiveType.Void);    
+                                        primitive = new CompilerPrimitiveType(PrimitiveType.Void);    
                                         break;
                                     default:
                                         throw new AscertainException(AscertainErrorCode.AnalyzerPrimitiveCompilerMetadataUnknownPrimitiveType, $"The primitive compiler metadata at {metadata.Position} declared unknown primitive type {primitiveValue}."); 
