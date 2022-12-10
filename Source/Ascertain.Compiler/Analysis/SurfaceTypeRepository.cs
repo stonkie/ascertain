@@ -36,6 +36,11 @@ public class SurfaceTypeRepository
             _references.Add(name, new List<ObjectTypeReference>());
         }
         
+        if (_analyzedTypes.ContainsKey(name))
+        {
+            reference.ResolvedType = _analyzedTypes[name];
+        }
+        
         _references[name].Add(reference);
 
         return reference;

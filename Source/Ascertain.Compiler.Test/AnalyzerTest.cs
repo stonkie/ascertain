@@ -14,7 +14,7 @@ public class AnalyzerTest
             public static New Program(System system) {
                 system.GetFileSystem();
 
-                new();
+                new ();
             }
         }";
 

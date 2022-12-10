@@ -21,8 +21,6 @@ public class ProgramGenerator
         return LLVMTypeRef.CreatePointer(anyType, 0);
     });
     
-    
-    
     private readonly Dictionary<QualifiedName, ObjectType> _remainingTypes = new();
     private readonly Dictionary<QualifiedName, LLVMTypeRef> _generatedTypes = new();
     
@@ -99,10 +97,23 @@ public class ProgramGenerator
                 var block = function.AppendBasicBlock("");
                 var builder = _module.Context.CreateBuilder();
                 builder.PositionAtEnd(block);
-                
-                
-                builder.BuildRet(LLVMValueRef.CreateConstNull(_pointerType.Value));
 
+                if (returnType.Primitive != null)
+                {
+                    switch (returnType.Primitive.Type)
+                    {
+                        case PrimitiveType.Void:
+                            builder.BuildRetVoid();
+                            break;
+                        default:
+                            throw new NotImplementedException($"Primitive type is not implemented {returnType.Primitive.Type}");
+                    }
+                }
+                else
+                {
+                    builder.BuildRet(LLVMValueRef.CreateConstNull(_pointerType.Value));    
+                }
+                
                 if (!function.VerifyFunction(LLVMVerifierFailureAction.LLVMPrintMessageAction))
                 {
                     throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorVerifierFailed, $"LLVM verification failed for function : {memberName}.");

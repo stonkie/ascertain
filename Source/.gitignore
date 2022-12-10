@@ -1,7 +1,9 @@
 **/bin
 **/obj
 
+../cmake-build-debug
 
 .idea
 *.csproj.DotSettings
 *.user
+

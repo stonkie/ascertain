@@ -106,25 +106,26 @@ public class ExpressionParser : IStatementParser
 
         if (_activeOperator != null)
         {
-            switch (_activeOperator.Value.Value.Span)
+            if (_activeOperator.Value.Value.Span.Equals(".".AsSpan(), StringComparison.InvariantCulture))
             {
-                case ".":
-                    if (_activeExpression == null)
-                    {
-                        throw new AscertainException(AscertainErrorCode.InternalErrorParserAccessMemberOnNullExpression, $"The identifier at {token.Position} is attempting to define an access member on a null expression.");    
-                    }
+                if (_activeExpression == null)
+                {
+                    throw new AscertainException(AscertainErrorCode.InternalErrorParserAccessMemberOnNullExpression,
+                        $"The identifier at {token.Position} is attempting to define an access member on a null expression.");
+                }
 
-                    _activeExpression = new AccessMemberSyntacticExpression(_activeExpression.Position, _activeExpression, token.Value.ToString());
-                    break;
-                default:
-                    throw new AscertainException(AscertainErrorCode.InternalErrorParserUnknownOperator, $"The identifier at {token.Position} was detected as an operator but it is has no implementation.");
+                _activeExpression = new AccessMemberSyntacticExpression(_activeExpression.Position, _activeExpression, token.Value.ToString());
+            }
+            else 
+            {
+                throw new AscertainException(AscertainErrorCode.InternalErrorParserUnknownOperator, $"The identifier {token.Value.ToString()} at {token.Position} was detected as an operator but it is has no implementation.");
             }
         }
         else if (_activeOperator == null)
         {
             if (_activeExpression != null)
             {
-                throw new AscertainException(AscertainErrorCode.ParserIdentifiersNotSeparatedByOperator, $"The identifier at {token.Position} follows an expression without an operator.");
+                throw new AscertainException(AscertainErrorCode.ParserIdentifiersNotSeparatedByOperator, $"The identifier {token.Value.ToString()} at {token.Position} follows an expression without an operator.");
             }
             
             _activeExpression = new AccessVariableSyntacticExpression(token.Position, token.Value.ToString());

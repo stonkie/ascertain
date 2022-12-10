@@ -9,7 +9,7 @@ public class ScopeParser : IStatementParser
         throw new NotImplementedException();
     }
 
-    private IStatementParser? _activeStatementParser = null;
+    private IStatementParser? _activeStatementParser;
 
     private readonly List<BaseSyntacticExpression> _accumulatedStatements = new();
     
@@ -66,7 +66,6 @@ public class ScopeParser : IStatementParser
             case "(":
             case ")":
             case ".":
-            // TODO : Add specialized statement parsers (e.g. for, if, while)
             default:
                 _activeStatementParser = new ExpressionParser();
                 

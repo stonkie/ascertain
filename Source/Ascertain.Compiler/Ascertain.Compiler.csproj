@@ -29,4 +29,11 @@
         <EmbeddedResource Include="SystemTypes\System.asc" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Include="..\Ascertain.Backbone\cmake-build-debug\Ascertain.Backbone.dll">
+        <Link>Ascertain.Backbone.dll</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
 </Project>

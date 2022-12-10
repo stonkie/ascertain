@@ -19,7 +19,7 @@ public class GeneratorTest
             public static New Program(System system) {
                 system.GetFileSystem();
 
-                new();
+                new ();
             }
         }";
 
