@@ -13,6 +13,7 @@
         <!--    TODO : Fix this hack and make it work cleanly on multiple targets-->
         <PackageReference Include="libLLVM" Version="15.0.0" />
         <PackageReference Include="libLLVM.runtime.win-x64" Version="15.0.0" GeneratePathProperty="true" />
+        
         <None Include="$(NugetPackageRoot)\libllvm.runtime.win-x64\15.0.0\runtimes\win-x64\native\libLLVM.dll" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
@@ -32,6 +33,11 @@
     <ItemGroup>
       <Content Include="..\Ascertain.Backbone\cmake-build-debug\Ascertain.Backbone.dll">
         <Link>Ascertain.Backbone.dll</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+
+        <!-- TODO : Send this into a nuget -->
+      <Content Include="C:\Program Files\LLVM\bin\clang.exe">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
     </ItemGroup>

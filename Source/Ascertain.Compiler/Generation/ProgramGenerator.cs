@@ -98,6 +98,18 @@ public class ProgramGenerator
                 var builder = _module.Context.CreateBuilder();
                 builder.PositionAtEnd(block);
 
+                if (memberName == "Function_Program_New_System")
+                {
+                    
+                    // var externalFunctionType = LLVMTypeRef.CreateFunction(_module.Context.VoidType, new LLVMTypeRef[]{});
+                    
+                    // var externalFunction = _module.AddFunction("External_Test", externalFunctionType);
+                    
+                    
+                    
+                    // builder.BuildCall2(externalFunctionType, externalFunction, new LLVMValueRef[] { });
+                }
+
                 if (returnType.Primitive != null)
                 {
                     switch (returnType.Primitive.Type)

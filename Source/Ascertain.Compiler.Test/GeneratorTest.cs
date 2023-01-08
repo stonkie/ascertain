@@ -1,8 +1,10 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Ascertain.Compiler.Analysis;
 using Ascertain.Compiler.Generation;
 using Ascertain.Compiler.Lexing;
 using Ascertain.Compiler.Parsing;
+using LLVMSharp;
 using LLVMSharp.Interop;
 
 namespace Ascertain.Compiler.Test;
@@ -33,15 +35,44 @@ public class GeneratorTest
         ProgramGenerator generator = new(module, programType, typeResolver);
 
         generator.Write();
+
+        // TODO : Move to generator, make it call the initialization and asc entry point 
+        var anyType = LLVMTypeRef.CreateStruct(new LLVMTypeRef[] {}, false);
+        var functionType = LLVMTypeRef.CreateFunction(LLVMTypeRef.Int32, new[] {LLVMTypeRef.Int32, LLVMTypeRef.CreatePointer(anyType, 0)});
+        var function = module.AddFunction("main", functionType);
+        var block = function.AppendBasicBlock("");
+        var builder = module.Context.CreateBuilder();
+        builder.PositionAtEnd(block);
+
+        builder.BuildRet(LLVMValueRef.CreateConstInt(LLVMTypeRef.Int32, 0));
+                
+        if (!function.VerifyFunction(LLVMVerifierFailureAction.LLVMPrintMessageAction))
+        {
+            throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorVerifierFailed, $"TEST.");
+        }
+        
         
         Assert.Equal(0, LLVM.InitializeNativeTarget());
         Assert.Equal(0, LLVM.InitializeNativeAsmParser());
         Assert.Equal(0, LLVM.InitializeNativeAsmPrinter());
+
+        module.WriteBitcodeToFile("test.bc");
+        var clang = Process.Start("clang", "test.bc -o test.exe");
+        clang.WaitForExit();
         
         var engine = module.CreateMCJITCompiler();
         var entryPoint = engine.FindFunction("Function_Program_New_System");
         var entryPointDelegate = engine.GetPointerToGlobal<NewProgramDelegate>(entryPoint);
-        entryPointDelegate(IntPtr.Zero);
+        
+        try
+        {
+            entryPointDelegate(IntPtr.Zero);
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+        
         
     }
     

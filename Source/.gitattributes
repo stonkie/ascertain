@@ -1,0 +1,1 @@
+Source/Ascertain.Compiler/clang.exe filter=lfs diff=lfs merge=lfs -text
