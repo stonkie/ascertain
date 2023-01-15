@@ -49,17 +49,17 @@ public class Lexer
 
         for (int i = 0; i < input.Length; i++)
         {
-            var charType = GetCharType(input[i]);
-
             if (isInStringLiteral)
             {
-                if (charType == CharType.StringLiteralDelimiter)
+                if (input[i] == '"')
                 {
                     isInStringLiteral = false;
                 }
             }
             else
             {
+                var charType = GetCharType(input[i]);
+                
                 if (charType != previousCharType || previousCharType.IsOneTokenPerChar())
                 {
                     if (previousCharType != CharType.WhiteSpace)
@@ -96,7 +96,7 @@ public class Lexer
         {
             return CharType.WhiteSpace;
         }
-        else if (char.IsLetterOrDigit(c))
+        else if (char.IsLetterOrDigit(c) || c == '_')
         {
             return CharType.Identifier;
         }

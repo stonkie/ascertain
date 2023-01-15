@@ -153,11 +153,11 @@ public class SurfaceAnalyzer
             member.Expression);
     }
 
-    private ParameterDeclaration AnalyzeParameterDeclaration(SyntacticParameterDeclaration parameter)
+    private SurfaceParameterDeclaration AnalyzeParameterDeclaration(SyntacticParameterDeclaration parameter)
     {
         var typeReference = _surfaceTypeRepository.GetTypeReference(parameter.SyntacticTypeReference.Position, new QualifiedName(parameter.SyntacticTypeReference.Name));
 
-        return new ParameterDeclaration(typeReference, parameter.Name);
+        return new SurfaceParameterDeclaration(typeReference, parameter.Name);
     }
     
 }

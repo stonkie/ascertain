@@ -27,7 +27,7 @@ public class ScopeAnalyzer
         {
             expressions.Add(AnalyzeExpression(statement));
         }
-
+ 
         var scopeReturnType = expressions.LastOrDefault()?.ReturnType ?? 
                 _accessibleSurfaceTypes.Single(t => t.Primitive?.Type == PrimitiveType.Void);;
 
@@ -68,6 +68,40 @@ public class ScopeAnalyzer
 
     private BaseExpression AnalyzeAccessVariable(AccessVariableSyntacticExpression accessVariable)
     {
+        if (accessVariable.Name.Length >= 2 && accessVariable.Name.StartsWith('"') && accessVariable.Name.EndsWith('"'))
+        {
+            string literalStringValue = accessVariable.Name[1..^1];
+
+            try
+            {
+                return new ReadLiteralExpression(literalStringValue, _accessibleSurfaceTypes.Single(t => t.Name == QualifiedName.String));
+            }
+            catch (Exception ex)
+            {
+                throw new AscertainException(AscertainErrorCode.InternalErrorUnknownStringTypeClass,
+                    $"The basic type String required for literal at position {accessVariable.Position} is undefined.");   
+            }
+        }
+
+        if (accessVariable.IsCompilerDirective)
+        {
+            switch (accessVariable.Name)
+            {
+                case "stderr_print":
+                    return new ReadBackboneFunctionExpression(new SurfaceCallableType(
+                        new BoundObjectTypeReference(accessVariable.Position, _accessibleSurfaceTypes.Single(t => t.Primitive?.Type == PrimitiveType.Void)), 
+                        new List<SurfaceParameterDeclaration>()
+                        {
+                            new(new BoundObjectTypeReference(accessVariable.Position, _accessibleSurfaceTypes.Single(t => t.Name == QualifiedName.String)), "content"),
+                        }
+                    ));
+                
+                default:
+                    throw new AscertainException(AscertainErrorCode.AnalyzerUnknownDirective,
+                        $"The compiler directive {accessVariable.Name} at position {accessVariable.Position} is unknown.");
+            }
+        }
+
         if (!_variables.ContainsKey(accessVariable.Name))
         {
             var possibleTypeAccess = _accessibleSurfaceTypes.SingleOrDefault(t => t.Name == new QualifiedName(accessVariable.Name));
@@ -179,13 +213,13 @@ public class ScopeAnalyzer
                         $"A method call parameter at {call.Position} was accepted during analysis, but returns nothing.");
                 }
                 
-                if (p.ReturnType is not ObjectTypeReference objectReturnType)
+                if (p.ReturnType is not SurfaceObjectType objectReturnType)
                 {
                     throw new AscertainException(AscertainErrorCode.InternalErrorAnalyzerParameterReturnsAMethod,
                         $"A method call parameter at {call.Position} was accepted during analysis, but returns a method.");
                 }
 
-                return new ParameterDeclaration(objectReturnType, "");
+                return new SurfaceParameterDeclaration(new BoundObjectTypeReference(call.Position, objectReturnType), "");
             }).ToList()));
 
         if (!isCallCompatibleWithSignature)
@@ -232,3 +266,8 @@ public record ReadStaticTypeExpression(SurfaceObjectType ObjectType) : BaseExpre
 public record ReadMemberExpression(ISurfaceType ReturnType, BaseExpression ParentObject, string MemberName, SurfaceObjectType ParentReferenceType) : BaseExpression(ReturnType);
 
 public record ReadVariableExpression(Variable Variable) : BaseExpression(Variable.ObjectType);
+
+public record ReadLiteralExpression(string Value, ISurfaceType ReturnType) : BaseExpression(ReturnType);
+
+public record ReadBackboneFunctionExpression(SurfaceCallableType CallableType) : BaseExpression(CallableType);
+

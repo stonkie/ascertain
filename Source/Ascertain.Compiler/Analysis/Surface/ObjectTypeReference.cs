@@ -21,3 +21,8 @@ public record ObjectTypeReference(Position Position, QualifiedName Name) : IType
         set => _resolvedType = value;
     }
 }
+
+public record BoundObjectTypeReference(Position Position, SurfaceObjectType SurfaceType) : ITypeReference<SurfaceObjectType>
+{
+    public SurfaceObjectType ResolvedType => SurfaceType;
+}

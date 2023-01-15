@@ -2,6 +2,8 @@
 
 #include <iostream>
 
-void stdout_print() {
-    std::cout << "Hello, World!" << std::endl;
+void stderr_print(const wchar_t* content) {
+    std::wstring_view view(content);
+
+    std::wcerr << view;
 }

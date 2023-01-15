@@ -25,7 +25,7 @@ public class FileParser
                 else
                 {
                     // TODO : Don't abort when this exception occurs
-                    throw new AscertainException(AscertainErrorCode.ParserCompilerMetadataIsNotCallExpression,
+                    throw new AscertainException(AscertainErrorCode.ParserCompilerDirectiveIsNotCallExpression,
                         $"Compiler metadata at {token.Position} cannot be parsed as a call expression. Type is {compilerMetadataExpression.GetType().FullName}");
                 }
                 _activeCompilerMetadataParser = null;
@@ -59,7 +59,7 @@ public class FileParser
         switch (tokenValue)
         {
             case "#":
-                _activeCompilerMetadataParser = new ExpressionParser();
+                _activeCompilerMetadataParser = new ExpressionParser(true);
                 break;
             case "{":
                 if (_activeName == null)

@@ -2,5 +2,5 @@
 
 extern "C" {
     __declspec(dllexport)
-    void stdout_print();
+    void stderr_print(const wchar_t* content);
 }

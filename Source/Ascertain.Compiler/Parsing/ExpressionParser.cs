@@ -4,6 +4,7 @@ namespace Ascertain.Compiler.Parsing;
 
 public class ExpressionParser : IStatementParser
 {
+    private readonly bool _isCompilerDirective;
     private Token? _activeOperator = null;
     private BaseSyntacticExpression? _activeExpression = null;
 
@@ -11,6 +12,11 @@ public class ExpressionParser : IStatementParser
     private ParameterListParser? _activeParameterListParser = null; 
     
     private bool _isCompleted;
+
+    public ExpressionParser(bool isCompilerDirective)
+    {
+        _isCompilerDirective = isCompilerDirective;
+    }
 
     public BaseSyntacticExpression? ParseToken(Token token)
     {
@@ -28,6 +34,11 @@ public class ExpressionParser : IStatementParser
                 if (_activeExpression == null)
                 {
                     throw new AscertainException(AscertainErrorCode.InternalErrorParserAssignationIntoNullDestination, $"The parser accepted an assignation into an empty destination expression at {token.Position}");
+                }
+
+                if (_isCompilerDirective)
+                {
+                    throw new AscertainException(AscertainErrorCode.ParserCompilerDirectiveIsNotCallExpression, $"Invalid compiler directive at {token.Position}");
                 }
                 
                 _isCompleted = true;
@@ -81,7 +92,7 @@ public class ExpressionParser : IStatementParser
                     throw new AscertainException(AscertainErrorCode.ParserAssignationIntoNullStatement, $"The identifier at {token.Position} produces an assignation towards an empty destination expression.");
                 }
                 
-                _activeAssignationSource = new ExpressionParser();
+                _activeAssignationSource = new ExpressionParser(false);
                 return null;
             case ".":
                 if (_activeOperator != null)
@@ -113,8 +124,14 @@ public class ExpressionParser : IStatementParser
                     throw new AscertainException(AscertainErrorCode.InternalErrorParserAccessMemberOnNullExpression,
                         $"The identifier at {token.Position} is attempting to define an access member on a null expression.");
                 }
+                
+                if (_isCompilerDirective)
+                {
+                    throw new AscertainException(AscertainErrorCode.ParserCompilerDirectiveIsNotCallExpression, $"Invalid compiler directive at {token.Position}");
+                }
 
                 _activeExpression = new AccessMemberSyntacticExpression(_activeExpression.Position, _activeExpression, token.Value.ToString());
+                _activeOperator = null;
             }
             else 
             {
@@ -128,7 +145,7 @@ public class ExpressionParser : IStatementParser
                 throw new AscertainException(AscertainErrorCode.ParserIdentifiersNotSeparatedByOperator, $"The identifier {token.Value.ToString()} at {token.Position} follows an expression without an operator.");
             }
             
-            _activeExpression = new AccessVariableSyntacticExpression(token.Position, token.Value.ToString());
+            _activeExpression = new AccessVariableSyntacticExpression(token.Position, token.Value.ToString(), _isCompilerDirective);
             return null;
         }
         
@@ -136,7 +153,7 @@ public class ExpressionParser : IStatementParser
     }
 }
 
-public record AccessVariableSyntacticExpression(Position Position, string Name) : BaseSyntacticExpression(Position);
+public record AccessVariableSyntacticExpression(Position Position, string Name, bool IsCompilerDirective) : BaseSyntacticExpression(Position);
 
 public record CallSyntacticExpression(Position Position, BaseSyntacticExpression Callable, List<BaseSyntacticExpression> Parameters) : BaseSyntacticExpression(Position);
 
@@ -146,32 +163,46 @@ public record AccessMemberSyntacticExpression(Position Position, BaseSyntacticEx
 
 public class ParameterListParser
 {
-    private AccessVariableSyntacticExpression? _accessVariable = null;
+    private readonly List<BaseSyntacticExpression> _parameters = new();
+
+    private AccessVariableSyntacticExpression? _currentAccessVariable;
+    
+    private bool _isCompleted = false; 
     
     public List<BaseSyntacticExpression>? ParseToken(Token token)
     {
-        var tokenValue = token.Value.Span;
-
-        if (tokenValue.Equals(")".AsSpan(), StringComparison.InvariantCulture))
+        if (_isCompleted)
         {
-            // TODO : Complete parameter list parsing
-
-            if (_accessVariable != null)
-            {
-                return new List<BaseSyntacticExpression>() { _accessVariable };    
-            }
-            else
-            {
-                return new List<BaseSyntacticExpression>();
-            }
+            throw new AscertainException(AscertainErrorCode.InternalErrorParserAttemptingToReuseCompletedTypeParser, $"The parser was already completed and cannot be reused for token at {token.Position}");
         }
 
-        if (_accessVariable != null)
+        var tokenValue = token.Value.Span;
+
+        switch (tokenValue)
+        {
+            case ")":
+                if (_currentAccessVariable != null)
+                {
+                    _parameters.Add(_currentAccessVariable);
+                    _currentAccessVariable = null;
+                }
+                _isCompleted = true;
+                return _parameters;    
+            case ",":
+                if (_currentAccessVariable != null)
+                {
+                    _parameters.Add(_currentAccessVariable);
+                    _currentAccessVariable = null;
+                }
+                return null;
+        }
+        
+        if (_currentAccessVariable != null)
         {
             throw new NotImplementedException("Single token parameters supported only");
         }
 
-        _accessVariable = new(token.Position, tokenValue.ToString());
+        _currentAccessVariable = new(token.Position, tokenValue.ToString(), false);
         
         return null;
     }

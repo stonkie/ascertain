@@ -3,7 +3,7 @@
 /// <remarks>
 /// Callable types support duck-typing.
 /// </remarks>
-public record SurfaceCallableType(ObjectTypeReference ReturnType, List<ParameterDeclaration> Parameters) : ISurfaceType
+public record SurfaceCallableType(ITypeReference<SurfaceObjectType> ReturnType, List<SurfaceParameterDeclaration> Parameters) : ISurfaceType
 {
     public bool AssignableTo(ISurfaceType destination)
     {

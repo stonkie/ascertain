@@ -31,7 +31,7 @@ public class DeepAnalyzer
         {
             var constructorMember = new SurfaceCallableType(
                 new ObjectTypeReference(new Position(0, 0), surfaceType.Name) {ResolvedType = surfaceType},
-                new List<ParameterDeclaration>());
+                new List<SurfaceParameterDeclaration>());
             
             Dictionary<string, List<Member>> members = new()
             {{"new", new List<Member> { 

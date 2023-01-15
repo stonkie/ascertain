@@ -49,7 +49,6 @@ public class ScopeParser : IStatementParser
 
         switch (tokenValue)
         {
-            case "#":
             case "\"":
                 throw new AscertainException(AscertainErrorCode.ParserIllegalTokenInScope,
                     $"Character {tokenValue} at {token.Position} is illegal in a scope definition");
@@ -63,11 +62,14 @@ public class ScopeParser : IStatementParser
                 throw new AscertainException(AscertainErrorCode.ParserEmptyStatement, $"An empty state was found at {token.Position}");
             case "=":
                 throw new AscertainException(AscertainErrorCode.ParserAssignmentOperatorWithoutTarget, $"An assignment operator without an assignment target was found at {token.Position}");
+            case "#":
+                _activeStatementParser = new ExpressionParser(true);
+                return null;
             case "(":
             case ")":
             case ".":
             default:
-                _activeStatementParser = new ExpressionParser();
+                _activeStatementParser = new ExpressionParser(false);
                 
                 var statement = _activeStatementParser.ParseToken(token);
 

@@ -17,13 +17,18 @@ public class GeneratorTest
     [Fact]
     public void BasicGeneration()
     {
-        var input = @"class Program { 
-            public static New Program(System system) {
-                system.GetFileSystem();
+        var input = 
+            """
+            class Program { 
+                public static New Program(System system) {
+                    system.GetConsole().GetErrorOutput().Write("test");
 
-                new ();
+                    system.GetFileSystem();
+
+                    new ();
+                }
             }
-        }";
+            """;
 
         using var reader = new StringReader(input);
         Lexer lexer = new(reader);

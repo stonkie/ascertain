@@ -31,8 +31,8 @@ public enum AscertainErrorCode
     ParserNameMissingInParameterDeclaration = 0x00020025,
     ParserTypeMissingInParameterDeclaration = 0x00020026,
     ParserIllegalTokenInScope = 0x00020027,
-    ParserCompilerMetadataIsNotCallExpression = 0x00020028,
-    
+    ParserCompilerDirectiveIsNotCallExpression = 0x00020028,
+
     AnalyzerMultipleTypesWithTheSameName = 0x00030001,
     AnalyzerSoughtTypeNotFound = 0x00030002,
     AnalyzerNoCategoryModifierOnType = 0x00030003,
@@ -62,6 +62,7 @@ public enum AscertainErrorCode
     AnalyzerMethodImplementationReturnTypeIncompatibleWithDeclaration = 0x00030028,
     AnalyzerPrimitiveCompilerMetadataParameterIsNotStringLiteral = 0x00030029,
     AnalyzerPrimitiveCompilerMetadataUnknownPrimitiveType = 0x00030030,
+    AnalyzerUnknownDirective = 0x00030031,
 
     InternalErrorParserUnknownModifier = 0x10020001,
     InternalErrorParserAttemptingToReuseCompletedTypeParser = 0x10020002, // TODO : Some usages are not for TypeParser
@@ -69,7 +70,7 @@ public enum AscertainErrorCode
     InternalErrorParserAssignationIntoNullDestination = 0x10020004,
     InternalErrorParserCallOnNullExpression = 0x10020005,
     InternalErrorParserAccessMemberOnNullExpression = 0x10020006,
-    
+
     InternalErrorAnalyzerUnresolvedReferenceAfterAnalysis = 0x10030001,
     InternalErrorAnalyzerCallableIsNothing = 0x10030002,
     InternalErrorAnalyzerParameterReturnsNothing = 0x10030003,
@@ -82,4 +83,5 @@ public enum AscertainErrorCode
     InternalErrorGeneratorUnknownPrimitiveType = 0x10040004,
     InternalErrorGeneratorIsReused = 0x10040005,
     InternalErrorUnknownTypeClass = 0x10040006,
+    InternalErrorUnknownStringTypeClass = 0x10040007,
 }
