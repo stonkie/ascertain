@@ -83,7 +83,7 @@ public class DeepAnalyzer
                 }
             }
 
-            _typeRepository.Add(surfaceType, new ObjectType(surfaceType.Name, members, surfaceType.Primitive));
+            _typeRepository.Add(surfaceType, new ObjectType(surfaceType.Name, members.Select(m => (m.Key, m.Value.Single())).ToList(), surfaceType.Primitive));
 
             if (_soughtType == surfaceType.Name.Name)
             {

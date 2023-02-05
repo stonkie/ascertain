@@ -22,7 +22,8 @@ public class ProgramGenerator
     });
     
     private readonly Dictionary<QualifiedName, ObjectType> _remainingTypes = new();
-    private readonly Dictionary<QualifiedName, LLVMTypeRef> _generatedTypes = new();
+    private readonly Dictionary<QualifiedName, TypeDeclaration> _declaredTypes = new();
+    private readonly Dictionary<string, MethodGenerator> _methodGenerators = new(); 
     
     public ProgramGenerator(LLVMModuleRef module, SurfaceObjectType topLevelType, Func<SurfaceObjectType, ObjectType> analyzedTypeProvider)
     {
@@ -31,7 +32,7 @@ public class ProgramGenerator
         _remainingTypes.Add(topLevelType.Name, _analyzedTypeProvider(topLevelType));
     }
 
-    public void Write()
+    public (LLVMValueRef Function, LLVMTypeRef FunctionType) Write()
     {
         if (_pointerType.IsValueCreated)
         {
@@ -39,14 +40,15 @@ public class ProgramGenerator
         }
 
         _ = _pointerType.Value;
-            
+        
         while (_remainingTypes.Any())
         {
             var nextPair = _remainingTypes.First();
             
-            foreach (ObjectType dependency in WriteType(nextPair.Value))
+            foreach (ObjectType dependency in WriteTypeDeclaration(nextPair.Value))
             {
-                if (!_generatedTypes.ContainsKey(dependency.Name) && !_remainingTypes.ContainsKey(dependency.Name))
+                if (!_declaredTypes.ContainsKey(dependency.Name) && 
+                    !_remainingTypes.ContainsKey(dependency.Name))
                 {
                     _remainingTypes.Add(dependency.Name, dependency);
                 }
@@ -54,21 +56,38 @@ public class ProgramGenerator
             
             _remainingTypes.Remove(nextPair.Key);
         }
+
+        (LLVMValueRef Function, LLVMTypeRef FunctionType)? mainLlvmFunction = null;
+        
+        foreach (var methodGenerator in _methodGenerators)
+        {
+            var llvmFunction = methodGenerator.Value.Write();
+
+            // TODO : Find main function in a cleaner way and throw right.
+            if (methodGenerator.Key.Equals("Function_Program_New", StringComparison.InvariantCulture))
+            {
+                mainLlvmFunction = llvmFunction;
+            }
+        }
         
         if (!_module.TryVerify(LLVMVerifierFailureAction.LLVMReturnStatusAction, out string message))
         {
             throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorVerifierFailed, $"LLVM verification failed with message : {message}.");
         }
+
+        // TODO : Find main function in a cleaner way and throw right.
+        return mainLlvmFunction!.Value!;
     }
 
-    private IEnumerable<ObjectType> WriteType(ObjectType type)
+    private IEnumerable<ObjectType> WriteTypeDeclaration(ObjectType type)
     {
-        foreach (var member in type.Members.Values.SelectMany(m => m))
-        {
-            string memberName = GetMangledName(type, member);
+        Dictionary<string, LLVMValueRef> methodDeclarations = new();
 
-            if (member.ReturnType is SurfaceCallableType method)
+        foreach (var member in type.Members)
+        {
+            if (member.Member.ReturnType is SurfaceCallableType method)
             {
+                string llvmFunctionName = type.GetMangledName(member.Member, _analyzedTypeProvider);
                 var returnType = _analyzedTypeProvider(method.ReturnType.ResolvedType);
                 
                 yield return returnType;
@@ -83,53 +102,16 @@ public class ProgramGenerator
                 }
                 
                 var functionType = LLVMTypeRef.CreateFunction(GetPassByType(returnType), passByParameterTypes.ToArray());
-                var function = _module.AddFunction(memberName, functionType);
-                Dictionary<string, LLVMValueRef> namedVariables = new();
-
-                for (int parameterIndex = 0; parameterIndex < function.Params.Length; parameterIndex++)
+                var function = _module.AddFunction(llvmFunctionName, functionType);
+                
+                foreach (ObjectType implementationDependency in GetDependencies(member.Member.Expression))
                 {
-                    string variableName = method.Parameters[parameterIndex].Name;
-                    function.Params[parameterIndex].Name = variableName;
-                    
-                    namedVariables[variableName] = function.Params[parameterIndex];
-                }
-
-                var block = function.AppendBasicBlock("");
-                var builder = _module.Context.CreateBuilder();
-                builder.PositionAtEnd(block);
-
-                if (memberName == "Function_Program_New_System")
-                {
-                    
-                    // var externalFunctionType = LLVMTypeRef.CreateFunction(_module.Context.VoidType, new LLVMTypeRef[]{});
-                    
-                    // var externalFunction = _module.AddFunction("External_Test", externalFunctionType);
-                    
-                    
-                    
-                    // builder.BuildCall2(externalFunctionType, externalFunction, new LLVMValueRef[] { });
-                }
-
-                if (returnType.Primitive != null)
-                {
-                    switch (returnType.Primitive.Type)
-                    {
-                        case PrimitiveType.Void:
-                            builder.BuildRetVoid();
-                            break;
-                        default:
-                            throw new NotImplementedException($"Primitive type is not implemented {returnType.Primitive.Type}");
-                    }
-                }
-                else
-                {
-                    builder.BuildRet(LLVMValueRef.CreateConstNull(_pointerType.Value));    
+                    yield return implementationDependency;
                 }
                 
-                if (!function.VerifyFunction(LLVMVerifierFailureAction.LLVMPrintMessageAction))
-                {
-                    throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorVerifierFailed, $"LLVM verification failed for function : {memberName}.");
-                }
+                methodDeclarations.Add(member.Name, function);
+
+                _methodGenerators.Add(llvmFunctionName, new MethodGenerator(function, functionType, member.Member, method, _analyzedTypeProvider, _declaredTypes, _methodGenerators, _module, _pointerType.Value));
             }
             else
             {
@@ -137,13 +119,66 @@ public class ProgramGenerator
             }
         }
 
-        if (_generatedTypes.ContainsKey(type.Name))
+        if (_declaredTypes.ContainsKey(type.Name))
         {
             throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorTypeGeneratedMultipleTimes, $"Type was generated multiple times : {type.Name}.");
         }
 
         LLVMTypeRef typeRef = LLVMTypeRef.CreateStruct(new LLVMTypeRef[] {}, false);
-        _generatedTypes.Add(type.Name, typeRef);
+        _declaredTypes.Add(type.Name, new TypeDeclaration(typeRef, methodDeclarations));
+    }
+
+    private IEnumerable<ObjectType> GetDependencies(BaseExpression expression)
+    {
+        switch (expression.ReturnType)
+        {
+            case SurfaceObjectType objectType:
+                yield return _analyzedTypeProvider(objectType);
+                break;
+            case SurfaceCallableType callableType:
+                yield return _analyzedTypeProvider(callableType.ReturnType.ResolvedType);
+                foreach (var parameter in callableType.Parameters)
+                {
+                    yield return _analyzedTypeProvider(parameter.ObjectType.ResolvedType);
+                }
+                break;
+            default:
+                throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorTypeClassHasNoDeclarationImplementation, $"Unknown type class during declaration generation : {expression.ReturnType}.");
+        }
+
+        IEnumerable<ObjectType> subDependencies;
+        
+        switch (expression)
+        {
+            case AssignationExpression assignationExpression:
+                subDependencies = GetDependencies(assignationExpression.Source);
+                break;
+            case CallExpression callExpression:
+                subDependencies = GetDependencies(callExpression.Method)
+                    .Union(callExpression.Parameters.SelectMany(p => GetDependencies(p)));
+                break;
+            case ReadMemberExpression readMemberExpression:
+                subDependencies = GetDependencies(readMemberExpression.ParentObject);
+                break;
+            case Scope scope:
+                subDependencies = scope.Expressions.SelectMany(e => GetDependencies(e));
+                break;
+                
+            case NewExpression:
+            case ReadBackboneFunctionExpression:
+            case ReadLiteralExpression:
+            case ReadStaticTypeExpression readStaticTypeExpression:
+            case ReadVariableExpression readVariableExpression:
+                subDependencies = Array.Empty<ObjectType>();
+                break;
+            default:
+                throw new NotImplementedException("Not implemented type dependency analyser");
+        }
+
+        foreach (var subDependency in subDependencies)
+        {
+            yield return subDependency;
+        }
     }
 
     private LLVMTypeRef GetPassByType(ObjectType type)
@@ -160,42 +195,5 @@ public class ProgramGenerator
         }
 
         return _pointerType.Value;
-    }
-
-    private string GetMangledName(ObjectType parentType, Member member)
-    {
-        if (member.ReturnType is SurfaceObjectType)
-        {
-            return $"Property_{parentType.Name}_{member.Name}";
-        }
-
-        if (member.ReturnType is SurfaceCallableType methodType)
-        {
-            StringBuilder builder = new StringBuilder();
-            builder.Append("Function_");
-            builder.Append(parentType.Name);
-            builder.Append("_");
-        
-            builder.Append(member.Name);
-            builder.Append("_");
-        
-            foreach (var parameter in methodType.Parameters)
-            {
-                builder.Append(GetMangledName(_analyzedTypeProvider(parameter.ObjectType.ResolvedType)));
-                builder.Append("_");
-            }
-
-            builder.Remove(builder.Length - 1, 1); // Remove trailing separator
-
-            return builder.ToString();
-        }
-
-        throw new AscertainException(AscertainErrorCode.InternalErrorUnknownTypeClass, $"Unknown type class : {member.ReturnType}.");
-    }
-
-    private string GetMangledName(ObjectType parentType)
-    {
-        // TODO : Implement generics
-        return parentType.Name.ToString();
     }
 }

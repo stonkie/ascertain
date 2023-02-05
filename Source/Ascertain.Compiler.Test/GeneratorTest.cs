@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using Ascertain.Compiler.Analysis;
 using Ascertain.Compiler.Generation;
@@ -17,14 +18,11 @@ public class GeneratorTest
     [Fact]
     public void BasicGeneration()
     {
-        var input = 
+        var input =
             """
             class Program { 
-                public static New Program(System system) {
-                    system.GetConsole().GetErrorOutput().Write("test");
-
-                    system.GetFileSystem();
-
+                public static New Program() {
+                    #stderr_print();
                     new ();
                 }
             }
@@ -35,54 +33,68 @@ public class GeneratorTest
         Parser parser = new(lexer.GetTokens());
         ProgramAnalyzer analyser = new(parser.GetTypes(), "Program");
         (var programType, var typeResolver) = analyser.GetProgramType().GetAwaiter().GetResult();
-        
+
         using var module = LLVMModuleRef.CreateWithName("ascertain_program");
         ProgramGenerator generator = new(module, programType, typeResolver);
 
-        generator.Write();
+        var mainFunction = generator.Write();
 
         // TODO : Move to generator, make it call the initialization and asc entry point 
-        var anyType = LLVMTypeRef.CreateStruct(new LLVMTypeRef[] {}, false);
-        var functionType = LLVMTypeRef.CreateFunction(LLVMTypeRef.Int32, new[] {LLVMTypeRef.Int32, LLVMTypeRef.CreatePointer(anyType, 0)});
+        var anyType = LLVMTypeRef.CreateStruct(new LLVMTypeRef[] { }, false);
+        var functionType = LLVMTypeRef.CreateFunction(LLVMTypeRef.Int32, Array.Empty<LLVMTypeRef>());
         var function = module.AddFunction("main", functionType);
-        var block = function.AppendBasicBlock("");
+        var block = function.AppendBasicBlock("main");
         var builder = module.Context.CreateBuilder();
         builder.PositionAtEnd(block);
 
+        // builder.BuildCall2(mainFunction.FunctionType, mainFunction.Function, new LLVMValueRef[] { });
+
+        
+        // LLVMValueRef constString = module.Context.GetConstString("This is a printed test", false);
+        LLVMValueRef constString = builder.BuildGlobalStringPtr("Test Output", "toprint");
+        
+        //constString.
+        
+        var printFunctionType = LLVMTypeRef.CreateFunction(LLVMTypeRef.Int32, new []{ LLVMTypeRef.CreatePointer(LLVMTypeRef.Int8, 0) });
+        var printFunction = module.AddFunction("printf", printFunctionType);
+        // printFunction.FunctionCallConv;
+        
+        
+        builder.BuildCall2(printFunctionType, printFunction, new []{ constString });
+
         builder.BuildRet(LLVMValueRef.CreateConstInt(LLVMTypeRef.Int32, 0));
-                
+
         if (!function.VerifyFunction(LLVMVerifierFailureAction.LLVMPrintMessageAction))
         {
             throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorVerifierFailed, $"TEST.");
         }
-        
-        
-        Assert.Equal(0, LLVM.InitializeNativeTarget());
-        Assert.Equal(0, LLVM.InitializeNativeAsmParser());
-        Assert.Equal(0, LLVM.InitializeNativeAsmPrinter());
 
+        module.PrintToFile("test.ir");
         module.WriteBitcodeToFile("test.bc");
         var clang = Process.Start("clang", "test.bc -o test.exe");
         clang.WaitForExit();
         
-        var engine = module.CreateMCJITCompiler();
-        var entryPoint = engine.FindFunction("Function_Program_New_System");
-        var entryPointDelegate = engine.GetPointerToGlobal<NewProgramDelegate>(entryPoint);
-        
-        try
+        Assert.Equal(0, clang.ExitCode);
+
+        var testProcess = new Process()
         {
-            entryPointDelegate(IntPtr.Zero);
-        }
-        catch (Exception ex)
-        {
-            throw;
-        }
+            StartInfo = new ProcessStartInfo("test")
+            {
+                RedirectStandardOutput = true,
+            },
+        };
+        testProcess.Start();
         
+        string output = testProcess.StandardOutput.ReadToEnd();
+        testProcess.WaitForExit();
         
+        Assert.Equal(0, testProcess.ExitCode);
+        Assert.Equal("Test Output", output);
+
     }
-    
+
     // TODO : These will need some code samples and tests for success and failures.
-    
+
     // References tagged "own" are top-level (not needed on local variable declaration).
     // Assignation or return with the "lend" keyword produce child references.
     // "inject" are special cases of passing child references as parameter where the lifetime must be at least that of the callee to be saved to a member.
@@ -105,7 +117,6 @@ public class GeneratorTest
     // - An "inject" reference can be forwarded to another function's "inject" parameter if the callee's lifetime <= this' lifetime. 
     // - Only immutable members inherit the lifetime of the object they are members of
 
-    
 
     // Possible syntax for internal mutability
     // class Test {

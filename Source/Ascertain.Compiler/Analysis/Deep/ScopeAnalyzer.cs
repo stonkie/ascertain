@@ -92,7 +92,7 @@ public class ScopeAnalyzer
                         new BoundObjectTypeReference(accessVariable.Position, _accessibleSurfaceTypes.Single(t => t.Primitive?.Type == PrimitiveType.Void)), 
                         new List<SurfaceParameterDeclaration>()
                         {
-                            new(new BoundObjectTypeReference(accessVariable.Position, _accessibleSurfaceTypes.Single(t => t.Name == QualifiedName.String)), "content"),
+                            //new(new BoundObjectTypeReference(accessVariable.Position, _accessibleSurfaceTypes.Single(t => t.Name == QualifiedName.String)), "content"),
                         }
                     ));
                 

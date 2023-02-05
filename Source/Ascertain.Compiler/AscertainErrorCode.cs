@@ -84,4 +84,7 @@ public enum AscertainErrorCode
     InternalErrorGeneratorIsReused = 0x10040005,
     InternalErrorUnknownTypeClass = 0x10040006,
     InternalErrorUnknownStringTypeClass = 0x10040007,
+    InternalErrorGeneratorTypeClassHasNoDeclarationImplementation = 0x10040008,
+    InternalErrorGeneratorCallTargetIsNull = 0x10040009,
+    InternalErrorGeneratorCallParameterIsNull = 0x10040010,
 }
