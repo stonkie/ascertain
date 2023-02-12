@@ -44,6 +44,7 @@ public class ParameterDeclarationParser
                 throw new AscertainException(AscertainErrorCode.ParserIllegalTokenInParameterDeclaration, $"Token {tokenValue} at {token.Position} is illegal in a parameter declaration");
             case ",":
             case ")":
+            case ">":
                 _isCompleted = true;
 
                 if (_activeTypeReference == null)

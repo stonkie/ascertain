@@ -108,6 +108,8 @@ public class Lexer
                 case '}':
                 case '(':
                 case ')':
+                case '<':
+                case '>':
                 case ',':
                     return CharType.Grouper;
                 case '.':

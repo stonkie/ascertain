@@ -36,7 +36,7 @@ public class GeneratorTest
         using var module = LLVMModuleRef.CreateWithName("ascertain_program");
         ProgramGenerator generator = new(module, programType, typeResolver);
 
-        var mainFunction = generator.Write();
+        generator.Write();
 
         // TODO : Move to generator, make it call the initialization and asc entry point 
         
@@ -64,6 +64,7 @@ public class GeneratorTest
 
     }
     
+
     // TODO : These will need some code samples and tests for success and failures.
 
     // References tagged "own" are top-level (not needed on local variable declaration).

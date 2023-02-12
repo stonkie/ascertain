@@ -32,6 +32,12 @@ public enum AscertainErrorCode
     ParserTypeMissingInParameterDeclaration = 0x00020026,
     ParserIllegalTokenInScope = 0x00020027,
     ParserCompilerDirectiveIsNotCallExpression = 0x00020028,
+    ParserTypeParameterListClosedWithParenthesis = 0x00020029,
+    ParserParameterListClosedWithAngledBracket = 0x00020030,
+    ParserDuplicateTypeParameterList = 0x00020031,
+    ParserTypeParameterListAfterParameterList = 0x00020032,
+    ParserDuplicateTypeParameterDeclaration = 0x00020033,
+    ParserMemberWithoutReturnType = 0x00020034,
 
     AnalyzerMultipleTypesWithTheSameName = 0x00030001,
     AnalyzerSoughtTypeNotFound = 0x00030002,

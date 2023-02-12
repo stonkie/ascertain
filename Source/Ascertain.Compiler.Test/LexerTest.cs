@@ -117,4 +117,28 @@ public class LexerTest
         }
     }
     
+    [Fact]
+    public void TypeParameterOnMethodDeclarationTokenization()
+    {
+        var input = @"class Program { 
+            public Initialize Void(System system) {
+                Allocate<Console>();
+            }
+
+            public Allocate Void<ConsoleSystem Console>() {
+                
+            }
+        }";
+        
+        var inputChars = input.ToCharArray();
+        
+        using StringReader reader = new StringReader(input);
+        Lexer lexer = new(reader);
+
+        var tokens = lexer.GetTokens().ToListAsync().GetAwaiter().GetResult();
+
+        Assert.Equal(2, tokens.Count(t => t.Value.ToString() == "<"));
+        Assert.Equal(2, tokens.Count(t => t.Value.ToString() == ">"));
+    }
+
 }

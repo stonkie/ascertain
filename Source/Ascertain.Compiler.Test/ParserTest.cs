@@ -95,4 +95,34 @@ public class ParserTest
         Assert.Empty(method.TypeDeclaration.ParameterDeclarations!);
         Assert.Empty(method.Expression.Statements);
     }
+    
+    [Fact]
+    public void ParseTypeParameterMethodDeclaration()
+    {
+        var input = @"class Program { 
+            public Initialize Void(System system) {
+                Allocate<Console>();
+            }
+
+            public Allocate Void<ConsoleSystem Console>() {
+                
+            }
+        }";
+
+        using var reader = new StringReader(input);
+        Lexer lexer = new(reader);
+
+        var tokens = lexer.GetTokens();
+        var objects = new Parser(tokens).GetTypes().ToListAsync();
+        var type = objects.GetAwaiter().GetResult().Single();
+
+        var allocateMethod = Assert.Single(type.Members.Where(m => m.Name == "Allocate"));
+        Assert.NotNull(allocateMethod.TypeDeclaration.ParameterDeclarations);
+        Assert.Empty(allocateMethod.TypeDeclaration.ParameterDeclarations!);
+        
+        var typeParameter = Assert.Single(allocateMethod.TypeDeclaration.TypeParameterDeclarations);
+        
+        Assert.Equal("Console", typeParameter.Name);
+        Assert.Equal("ConsoleSystem", typeParameter.SyntacticTypeReference.Name);
+    }
 }

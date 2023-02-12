@@ -10,9 +10,14 @@ internal class TypeParser
     private readonly IReadOnlyList<CallSyntacticExpression> _compilerMetadata;
 
     private Modifier _activeModifiers = 0;
-    private TypeDeclaration? _activeTypeDeclaration;
     private string? _activeName;
-    private IParameterDeclarationListParser? _activeTypeDeclarationParser;
+    private string? _activeType;
+    
+    private IReadOnlyList<SyntacticParameterDeclaration>? _activeParameterDeclarations;
+    private ParameterDeclarationListParser? _activeParameterDeclarationParser;
+    
+    private IReadOnlyList<SyntacticParameterDeclaration>? _activeTypeParameterDeclarations;
+    private ParameterDeclarationListParser? _activeTypeParameterDeclarationParser;
 
     private readonly List<SyntacticMember> _accumulatedMembers = new();
     
@@ -34,14 +39,27 @@ internal class TypeParser
             throw new AscertainException(AscertainErrorCode.InternalErrorParserAttemptingToReuseCompletedTypeParser, $"The parser was already completed and cannot be reused for token at {token.Position}");
         }
 
-        if (_activeTypeDeclarationParser != null)
+        if (_activeParameterDeclarationParser != null)
         {
-            var typeDeclaration = _activeTypeDeclarationParser.ParseToken(token);
+            var parameterDeclarations = _activeParameterDeclarationParser.ParseToken(token);
 
-            if (typeDeclaration != null)
+            if (parameterDeclarations != null)
             {
-                _activeTypeDeclaration = typeDeclaration;
-                _activeTypeDeclarationParser = null;
+                _activeParameterDeclarations = parameterDeclarations;
+                _activeParameterDeclarationParser = null;
+            }
+            
+            return null;
+        }
+
+        if (_activeTypeParameterDeclarationParser != null)
+        {
+            var parameterDeclarations = _activeTypeParameterDeclarationParser.ParseToken(token);
+
+            if (parameterDeclarations != null)
+            {
+                _activeTypeParameterDeclarations = parameterDeclarations;
+                _activeTypeParameterDeclarationParser = null;
             }
             
             return null;
@@ -66,10 +84,10 @@ internal class TypeParser
 
         if (modifier != null)
         {
-            if (_activeTypeDeclaration != null)
+            if (_activeParameterDeclarations != null || _activeTypeParameterDeclarations != null)
             {
                 throw new AscertainException(AscertainErrorCode.ParserModifierAfterTypeOnMember,
-                    $"Modifier {modifier} at {token.Position} should be placed before type {_activeTypeDeclaration}");
+                    $"Modifier {modifier} at {token.Position} should be placed before parameters");
             }
             
             _activeModifiers = _activeModifiers.AddForMethod(modifier.Value, token.Position);
@@ -88,7 +106,13 @@ internal class TypeParser
                         $"Missing name in member definition at {token.Position}");
                 }
                 
-                if (_activeTypeDeclaration == null)
+                if (_activeType == null)
+                {
+                    throw new AscertainException(AscertainErrorCode.ParserMemberWithoutReturnType,
+                        $"Missing return type name in member definition at {token.Position}");
+                }
+                
+                if (_activeParameterDeclarations == null)
                 {
                     throw new AscertainException(AscertainErrorCode.ParserMissingTypeInMemberDefinition,
                         $"Missing type declaration in member definition at {token.Position}");
@@ -96,42 +120,66 @@ internal class TypeParser
 
                 if (tokenValue.Equals("=".AsSpan(), StringComparison.InvariantCulture))
                 {
-                    if (_activeTypeDeclaration.ParameterDeclarations != null)
-                    {
-                        throw new AscertainException(AscertainErrorCode.ParserParametersAppliedOnNonMethodMember,
-                            $"Non method members cannot have a parameterized type at {token.Position}");
-                    }
+                    //TODO : property members not supported
+                    throw new NotSupportedException("Properties not supported");
+                    // if (_activeParameterDeclarations != null)
+                    // {
+                    //     throw new AscertainException(AscertainErrorCode.ParserParametersAppliedOnNonMethodMember,
+                    //         $"Non method members cannot have a parameterized type at {token.Position}");
+                    // }
+                    //
+                    // _activeMemberParser = new PropertyParser(_activeName, _activeModifiers, _activeTypeDeclaration);
+                }
+
+                var typeDeclaration = new TypeDeclaration(token.Position, _activeType, _activeParameterDeclarations, _activeTypeParameterDeclarations);
                     
-                    _activeMemberParser = new PropertyParser(_activeName, _activeModifiers, _activeTypeDeclaration);
-                }
-                else
-                {
-                    _activeMemberParser = new MethodParser(_activeName, _activeModifiers, _activeTypeDeclaration);
-                }
-                
+                _activeMemberParser = new MethodParser(_activeName, _activeModifiers, typeDeclaration);
+
                 _activeName = null;
+                _activeType = null;
                 _activeModifiers = 0;
-                _activeTypeDeclaration = null;
-                
+                _activeParameterDeclarations = null;
+                _activeTypeParameterDeclarations = null;
+
                 return null;
             case "}":
                 _isCompleted = true;
                 return new SyntacticObjectType(token.Position, _typeName, _typeModifiers, _accumulatedMembers, _compilerMetadata);
             case "(":
-                if (_activeTypeDeclaration == null)
+                if (_activeType == null)
                 {
                     throw new AscertainException(AscertainErrorCode.ParserParametersAppliedOnNonTypeOnMember,
                         $"Token {tokenValue} at {token.Position} opens parameter definition, but is not preceded by a type name");
                 }
 
-                if (_activeTypeDeclaration.ParameterDeclarations != null)
+                if (_activeParameterDeclarations != null || _activeParameterDeclarationParser != null)
                 {
                     throw new AscertainException(AscertainErrorCode.ParserParametersAppliedMoreThanOnceOnMember,
                         $"Token {tokenValue} at {token.Position} opens parameter definition, but a parameter definition was declared previously on this member");
                 }
 
-                _activeTypeDeclarationParser = new ParameterDeclarationListParser(_activeTypeDeclaration.ReturnTypeName);
-                _activeTypeDeclaration = null;
+                _activeParameterDeclarationParser = new ParameterDeclarationListParser(false);
+                return null;
+            case "<":
+                if (_activeType == null)
+                {
+                    throw new AscertainException(AscertainErrorCode.ParserParametersAppliedOnNonTypeOnMember,
+                        $"Token {tokenValue} at {token.Position} opens type parameter definition, but is not preceded by a type name");
+                }
+
+                if (_activeParameterDeclarations != null || _activeParameterDeclarationParser != null)
+                {
+                    throw new AscertainException(AscertainErrorCode.ParserTypeParameterListAfterParameterList,
+                        $"Token {tokenValue} at {token.Position} opens type parameter definition, but a parameter definition was declared previously on this member");
+                }
+
+                if (_activeTypeParameterDeclarations != null || _activeTypeParameterDeclarationParser != null)
+                {
+                    throw new AscertainException(AscertainErrorCode.ParserDuplicateTypeParameterDeclaration,
+                        $"Token {tokenValue} at {token.Position} opens type parameter definition, but a type parameter definition was declared previously on this member");
+                }
+
+                _activeTypeParameterDeclarationParser = new ParameterDeclarationListParser(true);
                 return null;
             case ")":
             case ";":
@@ -146,14 +194,14 @@ internal class TypeParser
         {
             _activeName = tokenValue.ToString();    
         }
-        else if (_activeTypeDeclaration == null)
+        else if (_activeType == null)
         {
-            _activeTypeDeclaration = new TypeDeclaration(token.Position, tokenValue.ToString(), null);
+            _activeType = tokenValue.ToString();
         }
         else
         {
             throw new AscertainException(AscertainErrorCode.ParserTooManyIdentifiersOnMember,
-                $"Token {tokenValue} at {token.Position} was found after member name {_activeName} and type {_activeTypeDeclaration}");
+                $"Token {tokenValue} at {token.Position} was found after member name {_activeName} and return type {_activeType}");
         }
         
         return null;

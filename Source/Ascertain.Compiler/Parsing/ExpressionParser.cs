@@ -9,7 +9,10 @@ public class ExpressionParser : IStatementParser
     private BaseSyntacticExpression? _activeExpression = null;
 
     private ExpressionParser? _activeAssignationSource = null;
-    private ParameterListParser? _activeParameterListParser = null; 
+    private ParameterListParser? _activeParameterListParser = null;
+    private ParameterListParser? _activeTypeParameterListParser = null;
+
+    private List<BaseSyntacticExpression>? _parsedTypeParameters = null;
     
     private bool _isCompleted;
 
@@ -58,13 +61,31 @@ public class ExpressionParser : IStatementParser
                     throw new AscertainException(AscertainErrorCode.InternalErrorParserCallOnNullExpression, $"The parser accepted a call for an empty destination expression at {token.Position}");
                 }
 
-                _activeExpression = new CallSyntacticExpression(_activeExpression.Position, _activeExpression, parameters);
+                _activeExpression = new CallSyntacticExpression(_activeExpression.Position, _activeExpression, parameters, _parsedTypeParameters ?? new());
                 _activeParameterListParser = null;
+                _parsedTypeParameters = null;
             }
 
             return null;
         }
         
+        if (_activeTypeParameterListParser != null)
+        {
+            List<BaseSyntacticExpression>? parameters = _activeTypeParameterListParser.ParseToken(token);
+            if (parameters != null)
+            {
+                if (_activeExpression == null)
+                {
+                    throw new AscertainException(AscertainErrorCode.InternalErrorParserCallOnNullExpression, $"The parser accepted a call for an empty destination expression at {token.Position}");
+                }
+
+                _activeTypeParameterListParser = null;
+                _parsedTypeParameters = parameters;
+            }
+
+            return null;
+        }
+
         var tokenValue = token.Value.Span;
 
         switch (tokenValue)
@@ -84,7 +105,21 @@ public class ExpressionParser : IStatementParser
                     throw new AscertainException(AscertainErrorCode.ParserOpeningParenthesisOnNullStatement, $"The identifier at {token.Position} opens a parameter list for a call without an previous expression to call.");
                 }
                 
-                _activeParameterListParser = new ParameterListParser();
+                _activeParameterListParser = new ParameterListParser(false);
+                return null;
+            case "<":
+
+                if (_activeExpression == null)
+                {
+                    throw new AscertainException(AscertainErrorCode.ParserNullStatement, $"The identifier at {token.Position} closes an empty expression.");
+                }
+
+                if (_parsedTypeParameters != null)
+                {
+                    throw new AscertainException(AscertainErrorCode.ParserDuplicateTypeParameterList, $"The identifier at {token.Position} opens a type parameter list, but one was already provided for this call.");
+                }
+                
+                _activeTypeParameterListParser = new ParameterListParser(true);
                 return null;
             case "=":
                 if (_activeExpression == null)
@@ -110,6 +145,7 @@ public class ExpressionParser : IStatementParser
             case "{":
             case "}":
             case ")":
+            case ">":
             case "#":
             case "\"":
                 throw new AscertainException(AscertainErrorCode.ParserIllegalOperatorInStatement, $"The identifier at {token.Position} follows an expression without an operator.");
@@ -155,7 +191,7 @@ public class ExpressionParser : IStatementParser
 
 public record AccessVariableSyntacticExpression(Position Position, string Name, bool IsCompilerDirective) : BaseSyntacticExpression(Position);
 
-public record CallSyntacticExpression(Position Position, BaseSyntacticExpression Callable, List<BaseSyntacticExpression> Parameters) : BaseSyntacticExpression(Position);
+public record CallSyntacticExpression(Position Position, BaseSyntacticExpression Callable, List<BaseSyntacticExpression> Parameters, List<BaseSyntacticExpression> TypeParameters) : BaseSyntacticExpression(Position);
 
 public record AssignationSyntacticExpression(Position Position, BaseSyntacticExpression Destination, BaseSyntacticExpression Source) : BaseSyntacticExpression(Position);
 
@@ -163,12 +199,19 @@ public record AccessMemberSyntacticExpression(Position Position, BaseSyntacticEx
 
 public class ParameterListParser
 {
+    private readonly bool _isTypeParameterList;
+    
     private readonly List<BaseSyntacticExpression> _parameters = new();
 
     private AccessVariableSyntacticExpression? _currentAccessVariable;
     
-    private bool _isCompleted = false; 
-    
+    private bool _isCompleted = false;
+
+    public ParameterListParser(bool isTypeParameterList)
+    {
+        _isTypeParameterList = isTypeParameterList;
+    }
+
     public List<BaseSyntacticExpression>? ParseToken(Token token)
     {
         if (_isCompleted)
@@ -181,13 +224,33 @@ public class ParameterListParser
         switch (tokenValue)
         {
             case ")":
+                if (_isTypeParameterList)
+                {
+                    throw new AscertainException(AscertainErrorCode.ParserTypeParameterListClosedWithParenthesis, $"Type parameter list must be closed with an angled bracket at {token.Position}");
+                }
+
                 if (_currentAccessVariable != null)
                 {
                     _parameters.Add(_currentAccessVariable);
                     _currentAccessVariable = null;
                 }
+
                 _isCompleted = true;
-                return _parameters;    
+                return _parameters;
+            case ">":
+                if (!_isTypeParameterList)
+                {
+                    throw new AscertainException(AscertainErrorCode.ParserParameterListClosedWithAngledBracket, $"Parameter list must be closed with a parenthesis at {token.Position}");
+                }
+
+                if (_currentAccessVariable != null)
+                {
+                    _parameters.Add(_currentAccessVariable);
+                    _currentAccessVariable = null;
+                }
+
+                _isCompleted = true;
+                return _parameters;
             case ",":
                 if (_currentAccessVariable != null)
                 {
