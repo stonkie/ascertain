@@ -93,7 +93,8 @@ public class ScopeAnalyzer
                         new List<SurfaceParameterDeclaration>()
                         {
                             new(new BoundObjectTypeReference(accessVariable.Position, _accessibleSurfaceTypes.Single(t => t.Name == QualifiedName.String)), "content"),
-                        }
+                        },
+                        new List<SurfaceParameterDeclaration>()
                     ));
                 
                 default:
@@ -203,24 +204,66 @@ public class ScopeAnalyzer
             parameters.Add(parameter);
         }
 
-        // TODO : Do overload resolution without resorting to AssignableTo
-        bool isCallCompatibleWithSignature = callableType.AssignableTo(new AnonymousSurfaceCallableType(call.Position, callableType.ReturnType,
-            parameters.Select(p =>
-            {
-                if (p.ReturnType == null)
-                {
-                    throw new AscertainException(AscertainErrorCode.InternalErrorAnalyzerParameterReturnsNothing,
-                        $"A method call parameter at {call.Position} was accepted during analysis, but returns nothing.");
-                }
-                
-                if (p.ReturnType is not SurfaceObjectType objectReturnType)
-                {
-                    throw new AscertainException(AscertainErrorCode.InternalErrorAnalyzerParameterReturnsAMethod,
-                        $"A method call parameter at {call.Position} was accepted during analysis, but returns a method.");
-                }
+        
+        List<BaseExpression> typeParameters = new();
 
-                return new SurfaceParameterDeclaration(new BoundObjectTypeReference(call.Position, objectReturnType), "");
-            }).ToList()));
+        for (var index = 0; index < call.TypeParameters.Count; index++)
+        {
+            var callParameterSyntax = call.TypeParameters[index];
+
+            var parameter = AnalyzeExpression(callParameterSyntax);
+
+            if (parameter.ReturnType == null)
+            {
+                throw new AscertainException(AscertainErrorCode.AnalyzerMethodParameterDoesNotReturnAValue,
+                    $"The method call parameter at {callParameterSyntax.Position} does not return a value.");
+            }
+            
+            if (parameter.ReturnType == null)
+            {
+                throw new AscertainException(AscertainErrorCode.AnalyzerMethodParameterReturnsAMethod,
+                    $"The method call parameter at {callParameterSyntax.Position} returns a method, should return a value.");
+            }
+
+            typeParameters.Add(parameter);
+        }
+        
+        // TODO : Do overload resolution without resorting to AssignableTo
+        bool isCallCompatibleWithSignature = callableType.AssignableTo(
+            new AnonymousSurfaceCallableType(call.Position, callableType.ReturnType,
+                parameters.Select(p =>
+                {
+                    if (p.ReturnType == null)
+                    {
+                        throw new AscertainException(AscertainErrorCode.InternalErrorAnalyzerParameterReturnsNothing,
+                            $"A method call parameter at {call.Position} was accepted during analysis, but returns nothing.");
+                    }
+                    
+                    if (p.ReturnType is not SurfaceObjectType objectReturnType)
+                    {
+                        throw new AscertainException(AscertainErrorCode.InternalErrorAnalyzerParameterReturnsAMethod,
+                            $"A method call parameter at {call.Position} was accepted during analysis, but returns a method.");
+                    }
+
+                    return new SurfaceParameterDeclaration(new BoundObjectTypeReference(call.Position, objectReturnType), "");
+                }).ToList(),
+                typeParameters.Select(p =>
+                {
+                    if (p.ReturnType == null)
+                    {
+                        throw new AscertainException(AscertainErrorCode.InternalErrorAnalyzerParameterReturnsNothing,
+                            $"A method call parameter at {call.Position} was accepted during analysis, but returns nothing.");
+                    }
+                    
+                    if (p.ReturnType is not SurfaceObjectType objectReturnType)
+                    {
+                        throw new AscertainException(AscertainErrorCode.InternalErrorAnalyzerParameterReturnsAMethod,
+                            $"A method call parameter at {call.Position} was accepted during analysis, but returns a method.");
+                    }
+
+                    return new SurfaceParameterDeclaration(new BoundObjectTypeReference(call.Position, objectReturnType), "");
+                }).ToList()
+            ));
 
         if (!isCallCompatibleWithSignature)
         {

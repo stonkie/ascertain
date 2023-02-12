@@ -144,10 +144,12 @@ public class SurfaceAnalyzer
         // TODO : Pass by reference return values and parameters can extend lifetime.
         var returnType = _surfaceTypeRepository.GetTypeReference(member.TypeDeclaration.Position, new QualifiedName(member.TypeDeclaration.ReturnTypeName));
         var parameters = parameterDeclarations.Select(AnalyzeParameterDeclaration).ToList();
+
+        var typeParameters = member.TypeDeclaration.TypeParameterDeclarations.Select(AnalyzeParameterDeclaration).ToList();
         
         return new SurfaceMember(
             member.Name,
-            new AnonymousSurfaceCallableType(member.Position, returnType, parameters),
+            new AnonymousSurfaceCallableType(member.Position, returnType, parameters, typeParameters),
             isPublic,
             isStatic,
             member.Expression);

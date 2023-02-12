@@ -131,7 +131,7 @@ internal class TypeParser
                     // _activeMemberParser = new PropertyParser(_activeName, _activeModifiers, _activeTypeDeclaration);
                 }
 
-                var typeDeclaration = new TypeDeclaration(token.Position, _activeType, _activeParameterDeclarations, _activeTypeParameterDeclarations);
+                var typeDeclaration = new TypeDeclaration(token.Position, _activeType, _activeParameterDeclarations, _activeTypeParameterDeclarations ?? new List<SyntacticParameterDeclaration>());
                     
                 _activeMemberParser = new MethodParser(_activeName, _activeModifiers, typeDeclaration);
 
