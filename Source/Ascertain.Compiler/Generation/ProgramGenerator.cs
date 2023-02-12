@@ -64,7 +64,7 @@ public class ProgramGenerator
             var llvmFunction = methodGenerator.Value.Write();
 
             // TODO : Find main function in a cleaner way and throw right.
-            if (methodGenerator.Key.Equals("Function_Program_New", StringComparison.InvariantCulture))
+            if (methodGenerator.Key.Equals("Function_Program_Initialize_System", StringComparison.InvariantCulture))
             {
                 mainLlvmFunction = llvmFunction;
             }
@@ -75,8 +75,32 @@ public class ProgramGenerator
             throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorVerifierFailed, $"LLVM verification failed with message : {message}.");
         }
 
-        // TODO : Find main function in a cleaner way and throw right.
-        return mainLlvmFunction!.Value!;
+        if (!mainLlvmFunction.HasValue)
+        {
+            throw new AscertainException(AscertainErrorCode.GeneratorNoEntryPoint, $"No Program class with Initialize method found.");
+        }
+        
+        var anyType = LLVMTypeRef.CreateStruct(new LLVMTypeRef[] { }, false);
+        var functionType = LLVMTypeRef.CreateFunction(LLVMTypeRef.Int32, new[] {anyType});
+        var function = _module.AddFunction("main", functionType);
+        var block = function.AppendBasicBlock("main");
+        var builder = _module.Context.CreateBuilder();
+        builder.PositionAtEnd(block);
+
+        builder.BuildCall2(mainLlvmFunction.Value.FunctionType, mainLlvmFunction.Value.Function, 
+            new LLVMValueRef[]
+            {
+                LLVMValueRef.CreateConstNull(LLVMTypeRef.CreatePointer(anyType, 0)),
+            });
+        
+        builder.BuildRet(LLVMValueRef.CreateConstInt(LLVMTypeRef.Int32, 0));
+
+        if (!_module.TryVerify(LLVMVerifierFailureAction.LLVMReturnStatusAction, out string mainDefinitionMessage))
+        {
+            throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorMainNotValid, $"LLVM verification for generated main function failed with message : {message}.");
+        }
+
+        return mainLlvmFunction.Value;
     }
 
     private IEnumerable<ObjectType> WriteTypeDeclaration(ObjectType type)

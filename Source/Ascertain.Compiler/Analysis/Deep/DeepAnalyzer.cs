@@ -29,33 +29,21 @@ public class DeepAnalyzer
         
         foreach (var surfaceType in allSurfaceTypes)
         {
-            var constructorMember = new SurfaceCallableType(
-                new ObjectTypeReference(new Position(0, 0), surfaceType.Name) {ResolvedType = surfaceType},
-                new List<SurfaceParameterDeclaration>());
+            Dictionary<string, List<Member>> members = new();
             
-            Dictionary<string, List<Member>> members = new()
-            {{"new", new List<Member> { 
-                new ("new", 
-                    constructorMember,
-                    true,
-                    true,
-                    new NewExpression(surfaceType)
-                )
-            }}};
-
             foreach (var surfaceMember in surfaceType.Members.SelectMany(m => m.Value))
             {
                 if (surfaceMember.ReturnType.ResolvedType is SurfaceCallableType surfaceCallableType)
                 {
                     Dictionary<string, Variable> variables = new()
                     {
-                        {"new", new Variable(constructorMember)}
+                        // {"this", new Variable(constructorMember, "this")}
                     };
 
                     foreach (var parameter in surfaceCallableType.Parameters)
                     {
                         // Differentiate mutables
-                        variables.Add(parameter.Name, new Variable(parameter.ObjectType.ResolvedType));
+                        variables.Add(parameter.Name, new Variable(parameter.ObjectType.ResolvedType, parameter.Name));
                     }
 
                     var expressionAnalyzer = new ScopeAnalyzer(accessibleSurfaceTypes, surfaceMember.SyntacticExpression, variables, surfaceCallableType.ReturnType);

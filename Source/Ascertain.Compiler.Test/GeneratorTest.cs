@@ -21,9 +21,8 @@ public class GeneratorTest
         var input =
             """
             class Program { 
-                public static New Program() {
-                    #stderr_print();
-                    new ();
+                public Initialize Void(System system) {
+                    #stderr_print("Test Output");
                 }
             }
             """;
@@ -40,35 +39,7 @@ public class GeneratorTest
         var mainFunction = generator.Write();
 
         // TODO : Move to generator, make it call the initialization and asc entry point 
-        var anyType = LLVMTypeRef.CreateStruct(new LLVMTypeRef[] { }, false);
-        var functionType = LLVMTypeRef.CreateFunction(LLVMTypeRef.Int32, Array.Empty<LLVMTypeRef>());
-        var function = module.AddFunction("main", functionType);
-        var block = function.AppendBasicBlock("main");
-        var builder = module.Context.CreateBuilder();
-        builder.PositionAtEnd(block);
-
-        // builder.BuildCall2(mainFunction.FunctionType, mainFunction.Function, new LLVMValueRef[] { });
-
         
-        // LLVMValueRef constString = module.Context.GetConstString("This is a printed test", false);
-        LLVMValueRef constString = builder.BuildGlobalStringPtr("Test Output", "toprint");
-        
-        //constString.
-        
-        var printFunctionType = LLVMTypeRef.CreateFunction(LLVMTypeRef.Int32, new []{ LLVMTypeRef.CreatePointer(LLVMTypeRef.Int8, 0) });
-        var printFunction = module.AddFunction("printf", printFunctionType);
-        // printFunction.FunctionCallConv;
-        
-        
-        builder.BuildCall2(printFunctionType, printFunction, new []{ constString });
-
-        builder.BuildRet(LLVMValueRef.CreateConstInt(LLVMTypeRef.Int32, 0));
-
-        if (!function.VerifyFunction(LLVMVerifierFailureAction.LLVMPrintMessageAction))
-        {
-            throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorVerifierFailed, $"TEST.");
-        }
-
         module.PrintToFile("test.ir");
         module.WriteBitcodeToFile("test.bc");
         var clang = Process.Start("clang", "test.bc -o test.exe");
@@ -92,7 +63,7 @@ public class GeneratorTest
         Assert.Equal("Test Output", output);
 
     }
-
+    
     // TODO : These will need some code samples and tests for success and failures.
 
     // References tagged "own" are top-level (not needed on local variable declaration).

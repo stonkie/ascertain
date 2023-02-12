@@ -7,9 +7,19 @@ public record SurfaceObjectType(QualifiedName Name, Dictionary<string, List<Surf
         // TODO : Implement assignation covariance
         if (destination is SurfaceObjectType objectDestination)
         {
+            if (objectDestination.Primitive?.Type == PrimitiveType.Void)
+            {
+                return true;
+            }
+            
             return objectDestination.Name == Name;    
         }
 
         return false;
+    }
+
+    public override string ToString()
+    {
+        return Name.ToString();
     }
 }

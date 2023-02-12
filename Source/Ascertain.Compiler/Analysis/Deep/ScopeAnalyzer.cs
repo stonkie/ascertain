@@ -76,7 +76,7 @@ public class ScopeAnalyzer
             {
                 return new ReadLiteralExpression(literalStringValue, _accessibleSurfaceTypes.Single(t => t.Name == QualifiedName.String));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw new AscertainException(AscertainErrorCode.InternalErrorUnknownStringTypeClass,
                     $"The basic type String required for literal at position {accessVariable.Position} is undefined.");   
@@ -88,11 +88,11 @@ public class ScopeAnalyzer
             switch (accessVariable.Name)
             {
                 case "stderr_print":
-                    return new ReadBackboneFunctionExpression(new SurfaceCallableType(
+                    return new ReadBackboneFunctionExpression(accessVariable.Name, new SurfaceCallableType(
                         new BoundObjectTypeReference(accessVariable.Position, _accessibleSurfaceTypes.Single(t => t.Primitive?.Type == PrimitiveType.Void)), 
                         new List<SurfaceParameterDeclaration>()
                         {
-                            //new(new BoundObjectTypeReference(accessVariable.Position, _accessibleSurfaceTypes.Single(t => t.Name == QualifiedName.String)), "content"),
+                            new(new BoundObjectTypeReference(accessVariable.Position, _accessibleSurfaceTypes.Single(t => t.Name == QualifiedName.String)), "content"),
                         }
                     ));
                 
@@ -269,5 +269,5 @@ public record ReadVariableExpression(Variable Variable) : BaseExpression(Variabl
 
 public record ReadLiteralExpression(string Value, ISurfaceType ReturnType) : BaseExpression(ReturnType);
 
-public record ReadBackboneFunctionExpression(SurfaceCallableType CallableType) : BaseExpression(CallableType);
+public record ReadBackboneFunctionExpression(string Name, SurfaceCallableType CallableType) : BaseExpression(CallableType);
 

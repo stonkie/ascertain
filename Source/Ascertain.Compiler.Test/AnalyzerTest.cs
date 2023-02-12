@@ -10,13 +10,14 @@ public class AnalyzerTest
     [Fact]
     public void BasicAnalysis()
     {
-        var input = @"class Program {
-            public static New Program(System system) {
-                system.GetFileSystem();
-
-                new ();
+        var input =
+            """
+            class Program { 
+                public Initialize Void(System system) {
+                    #stderr_print("Test Output");
+                }
             }
-        }";
+            """;
 
         using var reader = new StringReader(input);
         Lexer lexer = new(reader);
@@ -25,10 +26,9 @@ public class AnalyzerTest
 
         var program = analyser.GetProgramType().GetAwaiter().GetResult();
 
-        var constructor = program.SoughtType.Members["New"].Single();
+        var constructor = program.SoughtType.Members["Initialize"].Single();
 
         Assert.True(constructor.IsPublic);
-        Assert.True(constructor.IsStatic);
-        Assert.Equal("New", constructor.Name);
+        Assert.Equal("Initialize", constructor.Name);
     }
 }

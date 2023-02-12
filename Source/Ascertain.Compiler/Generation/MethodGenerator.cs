@@ -43,23 +43,23 @@ public class MethodGenerator
 
     public (LLVMValueRef Function, LLVMTypeRef FunctionType) Write()
     {
-        ObjectType returnType = _analyzedTypeProvider(_methodType.ReturnType.ResolvedType);
-        
-        Dictionary<string, LLVMValueRef> namedVariables = new();
-        
+        Dictionary<string, (LLVMValueRef Value, LLVMTypeRef Type)> namedVariables = new();
+
         for (int parameterIndex = 0; parameterIndex < _llvmFunction.Params.Length; parameterIndex++)
         {
             string variableName = _methodType.Parameters[parameterIndex].Name;
             _llvmFunction.Params[parameterIndex].Name = variableName;
             
-            namedVariables[variableName] = _llvmFunction.Params[parameterIndex];
+            namedVariables[variableName] = (_llvmFunction.Params[parameterIndex], _llvmFunction.Params[parameterIndex].TypeOf);
         }
-        
+
         var block = _llvmFunction.AppendBasicBlock("");
         using var builder = _module.Context.CreateBuilder();
         builder.PositionAtEnd(block);
-        
-        WriteExpression(builder, _method.Expression);
+
+        WriteExpression(builder, _method.Expression, namedVariables);
+
+        ObjectType returnType = _analyzedTypeProvider(_methodType.ReturnType.ResolvedType);
         
         if (returnType.Primitive != null)
         {
@@ -85,7 +85,8 @@ public class MethodGenerator
         return (_llvmFunction, _llvmFunctionType);
     }
     
-    private (LLVMValueRef Value, LLVMTypeRef Type)? WriteExpression(LLVMBuilderRef builder, BaseExpression expression)
+    private (LLVMValueRef Value, LLVMTypeRef Type)? WriteExpression(LLVMBuilderRef builder, BaseExpression expression,
+        Dictionary<string, (LLVMValueRef Value, LLVMTypeRef Type)> namedVariables)
     {
         switch (expression)
         {
@@ -100,12 +101,12 @@ public class MethodGenerator
             case Scope scope:
                 foreach (var subExpression in scope.Expressions)
                 {
-                    WriteExpression(builder, subExpression); 
+                    WriteExpression(builder, subExpression, namedVariables); 
                 }
                 break;
             case CallExpression callExpression:
             {
-                var llvmCallTarget = WriteExpression(builder, callExpression.Method);
+                var llvmCallTarget = WriteExpression(builder, callExpression.Method, namedVariables);
 
                 if (llvmCallTarget == null)
                 {
@@ -120,7 +121,7 @@ public class MethodGenerator
 
                 foreach (BaseExpression parameter in callExpression.Parameters)
                 {
-                    var llvmParameter = WriteExpression(builder, parameter);
+                    var llvmParameter = WriteExpression(builder, parameter, namedVariables);
 
                     if (llvmParameter == null)
                     {
@@ -139,7 +140,7 @@ public class MethodGenerator
             }
             case ReadMemberExpression readMemberExpression:
             {
-                WriteExpression(builder, readMemberExpression.ParentObject);
+                WriteExpression(builder, readMemberExpression.ParentObject, namedVariables);
 
                 // TODO : Overload resolution, polymorphism, dynamic dispatch and/or momorphisation
                 ObjectType parentType = _analyzedTypeProvider(readMemberExpression.ParentReferenceType);
@@ -150,26 +151,29 @@ public class MethodGenerator
             }
             case ReadLiteralExpression readLiteralException:
             {
-                LLVMValueRef llvmGlobalString = builder.BuildGlobalString(readLiteralException.Value);
-
+                // TODO : Support other literal types than string
+                LLVMValueRef llvmGlobalString = builder.BuildGlobalStringPtr(readLiteralException.Value);
+        
                 return (llvmGlobalString, _llvmPointerType);
             }
             case ReadVariableExpression readVariableExpression:
             {
-                // TODO : Implement read variable and new()
-
-                return null;
+                return namedVariables[readVariableExpression.Variable.Name];
             }
             case ReadBackboneFunctionExpression readBackboneFunctionExpression:
             {
-                // TODO : Hardcode print
+                switch (readBackboneFunctionExpression.Name)
+                {
+                    case "stderr_print":
+                        // TODO : Keep between calls
+                        var printFunctionType = LLVMTypeRef.CreateFunction(LLVMTypeRef.Int32, new []{ LLVMTypeRef.CreatePointer(LLVMTypeRef.Int8, 0) });
+                        var printFunction = _module.AddFunction("printf", printFunctionType);
 
-                // var functionType = LLVMTypeRef.CreateFunction(_module.Context.VoidType, Array.Empty<LLVMTypeRef>());
-                // var externalFunction = _module.AddFunction("stderr_print", functionType);
-
-                
-                // return (externalFunction, functionType);
-                return null;
+                        return (printFunction, printFunctionType);
+                    default:
+                        throw new AscertainException(AscertainErrorCode.InternalErrorGeneratorUnknownBackboneFunction,
+                            $"Unknown backbone function was called : {readBackboneFunctionExpression.Name}.");
+                }
             }
             default:
                 // TODO : Not implemented

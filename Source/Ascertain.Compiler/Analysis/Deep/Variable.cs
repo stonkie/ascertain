@@ -2,4 +2,4 @@
 
 namespace Ascertain.Compiler.Analysis.Deep;
 
-public record Variable(ISurfaceType ObjectType);
+public record Variable(ISurfaceType ObjectType, string Name);

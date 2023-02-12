@@ -63,6 +63,8 @@ public enum AscertainErrorCode
     AnalyzerPrimitiveCompilerMetadataParameterIsNotStringLiteral = 0x00030029,
     AnalyzerPrimitiveCompilerMetadataUnknownPrimitiveType = 0x00030030,
     AnalyzerUnknownDirective = 0x00030031,
+    
+    GeneratorNoEntryPoint = 0x00040001,
 
     InternalErrorParserUnknownModifier = 0x10020001,
     InternalErrorParserAttemptingToReuseCompletedTypeParser = 0x10020002, // TODO : Some usages are not for TypeParser
@@ -87,4 +89,6 @@ public enum AscertainErrorCode
     InternalErrorGeneratorTypeClassHasNoDeclarationImplementation = 0x10040008,
     InternalErrorGeneratorCallTargetIsNull = 0x10040009,
     InternalErrorGeneratorCallParameterIsNull = 0x10040010,
+    InternalErrorGeneratorUnknownBackboneFunction = 0x10040011,
+    InternalErrorGeneratorMainNotValid = 0x10040012,
 }
